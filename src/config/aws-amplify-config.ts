@@ -14,7 +14,7 @@ const awsconfig = {
         email: true,
       }
     }
-  }
+  },
 };
 
 export default awsconfig;

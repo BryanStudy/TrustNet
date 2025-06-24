@@ -1,6 +1,6 @@
 'use client';
 
-import { signUp, confirmSignUp, signInWithRedirect, signIn } from 'aws-amplify/auth';
+import { signUp, confirmSignUp, signInWithRedirect, signIn, fetchUserAttributes, fetchAuthSession, signOut } from 'aws-amplify/auth';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -84,7 +84,35 @@ export default function SignUpPage() {
     try {
       await confirmSignUp({ username: email, confirmationCode: code });
       const { isSignedIn } = await signIn({ username: email, password });
+      
       if (isSignedIn) {
+        // After successful sign-in, get the ID token
+        const session = await fetchAuthSession();
+        const token = session.tokens?.idToken?.toString();
+
+        if (!token) {
+          throw new Error('Could not retrieve ID token.');
+        }
+
+        // Call the backend API to create the user in DynamoDB
+        const response = await fetch('/api/create-user', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            givenName,
+            familyName,
+            picture,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorResult = await response.json();
+          throw new Error(errorResult.error || 'Failed to create user in database.');
+        }
+
         router.push('/landing');
       } else {
         // This case should ideally not be reached

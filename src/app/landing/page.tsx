@@ -1,11 +1,41 @@
 'use client';
 
 import { useUser, useLogout } from '@/hooks/useUser';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import Link from 'next/link';
 
 export default function LandingPage() {
     const { userInfo, loading } = useUser();
     const logout = useLogout();
+
+    const handleTestWrite = async () => {
+        console.log('Testing DynamoDB write...');
+        try {
+            const session = await fetchAuthSession();
+            const token = session.tokens?.idToken?.toString();
+
+            if (!token) {
+                alert('Could not get session token. Are you logged in?');
+                return;
+            }
+
+            const response = await fetch('/api/temp-write', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`Success! Check your 'temp' table in DynamoDB. Message: ${result.message}`);
+            } else {
+                throw new Error(result.error || 'API request failed');
+            }
+        } catch (error) {
+            console.error('DynamoDB write test failed:', error);
+            alert(`Error: ${(error as Error).message}`);
+        }
+    };
 
     if (loading) {
         return (
@@ -43,6 +73,11 @@ export default function LandingPage() {
                     </Link>
                     <button onClick={logout} className="w-full max-w-xs px-8 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 font-semibold cursor-pointer">
                         Logout
+                    </button>
+                </div>
+                <div className="pt-4">
+                    <button onClick={handleTestWrite} className="w-full max-w-xs px-8 py-3 text-white bg-gray-700 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-semibold cursor-pointer">
+                        Test DynamoDB Write
                     </button>
                 </div>
             </div>
