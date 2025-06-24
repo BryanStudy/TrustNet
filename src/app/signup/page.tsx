@@ -129,7 +129,7 @@ export default function SignUpPage() {
       {formState === 'signUp' && (
         <>
           <h1 className="text-3xl font-bold text-center">Sign up</h1>
-          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSignUp(); }}>
+          <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); void handleSignUp(); }}>
             <div className="flex space-x-4">
                 <div className="w-1/2">
                     <label className="text-sm font-medium text-gray-700">First Name</label>
