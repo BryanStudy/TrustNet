@@ -6,14 +6,14 @@ const awsconfig = {
       loginWith: {
         oauth: {
           domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
-          scopes: ['openid', 'email', 'profile'],
-          redirectSignIn: ['http://localhost:3000/landing'],
-          redirectSignOut: ['http://localhost:3000/login'],
-          responseType: 'code' as const, 
+          scopes: ["openid", "email", "profile"],
+          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_BASE_URL}/landing`],
+          redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_BASE_URL}/login`],
+          responseType: "code" as const,
         },
         email: true,
-      }
-    }
+      },
+    },
   },
 };
 
