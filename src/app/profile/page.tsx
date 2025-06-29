@@ -1,48 +1,58 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser, useDeleteUser } from '@/hooks/useUser';
+import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
+import axios from '@/utils/axios';
+import { Spinner } from '@/components/spinner';
+import { toast } from 'react-toastify';
+
+interface UserInfo {
+    userId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture?: string;
+}
 
 export default function ProfilePage() {
-    const { userInfo, loading, updateUser } = useUser();
-    const deleteUser = useDeleteUser();
-    const [givenName, setGivenName] = useState(userInfo?.given_name || '');
-    const [familyName, setFamilyName] = useState(userInfo?.family_name || '');
+    const { userInfo, loading, refetch } = useUser();
+    const [firstName, setFirstName] = useState(userInfo?.firstName || '');
+    const [lastName, setLastName] = useState(userInfo?.lastName || '');
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     const router = useRouter();
 
-    // Sync userInfo to form state once loaded
     useEffect(() => {
         if (userInfo) {
-            setGivenName(userInfo.given_name || '');
-            setFamilyName(userInfo.family_name || '');
+            setFirstName(userInfo.firstName || '');
+            setLastName(userInfo.lastName || '');
         }
     }, [userInfo]);
-    
+
     const handleSave = async () => {
         if (!isEditing) return;
+        setError(null);
+        setSuccess(null);
         try {
-            await updateUser({ given_name: givenName, family_name: familyName });
+            await axios.patch(`/api/users/${userInfo?.userId}`, {
+                firstName,
+                lastName,
+            });
             setIsEditing(false);
-        } catch (error) {
-            console.error('Failed to update profile:', error);
-        }
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (!isDeleting) return;
-        try {
-            await deleteUser();
-        } catch (error) {
-            console.error('Failed to delete account:', error);
-            setIsDeleting(false);
+            toast.success('Profile updated successfully.');
+            refetch();
+        } catch (error: any) {
+            toast.error('Failed to update profile');
         }
     };
 
     if (loading) {
-        return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+        return <div className="flex items-center justify-center min-h-screen bg-gray-50">
+            <Spinner size="medium" className="mr-2" />
+        </div>
     }
 
     return (
@@ -50,7 +60,7 @@ export default function ProfilePage() {
             <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-6">
                 <div className="flex justify-between items-start">
                     <h1 className="text-3xl font-bold text-gray-800">My Profile</h1>
-                    <button onClick={() => router.push('/landing')} className="text-sm text-blue-500 hover:underline">Back to Home</button>
+                    <button onClick={() => router.push('/home')} className="text-sm text-blue-500 hover:underline">Back to Home</button>
                 </div>
                 <div className="flex items-center space-x-6">
                     <img
@@ -65,8 +75,8 @@ export default function ProfilePage() {
                                 <input
                                     type="text"
                                     disabled={!isEditing}
-                                    value={givenName}
-                                    onChange={(e) => setGivenName(e.target.value)}
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
                                     className="w-full p-2 border rounded-md disabled:bg-gray-100"
                                 />
                             </div>
@@ -75,8 +85,8 @@ export default function ProfilePage() {
                                 <input
                                     type="text"
                                     disabled={!isEditing}
-                                    value={familyName}
-                                    onChange={(e) => setFamilyName(e.target.value)}
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
                                     className="w-full p-2 border rounded-md disabled:bg-gray-100"
                                 />
                             </div>
@@ -100,27 +110,10 @@ export default function ProfilePage() {
                             </button>
                         </div>
                     )}
-                    <button onClick={() => setIsDeleting(true)} className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
-                        Delete Account
-                    </button>
+                    {/* Delete Account button can be added here if needed */}
                 </div>
             </div>
-            {isDeleting && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-                        <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
-                        <p className="mb-6">This action cannot be undone. All your data will be permanently deleted.</p>
-                        <div className="flex justify-center gap-4">
-                            <button onClick={handleDeleteConfirm} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
-                                Yes, delete my account
-                            </button>
-                            <button onClick={() => setIsDeleting(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Delete confirmation modal can be added here if needed */}
         </div>
     );
 } 
