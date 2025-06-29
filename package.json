@@ -13,7 +13,6 @@
     "@aws-sdk/lib-dynamodb": "^3.830.0",
     "@heroicons/react": "^2.2.0",
     "add": "^2.0.6",
-    "aws-amplify": "^6.15.1",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
