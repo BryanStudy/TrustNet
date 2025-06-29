@@ -46,7 +46,7 @@ export default function LandingPage() {
                     <button
                         onClick={async () => {
                             await axios.post('/api/logout');
-                            router.push('/login');
+                            router.push('/');
                             toast.success('Logged out successfully');
                         }}
                         className="w-full max-w-xs px-8 py-3 text-white bg-red-500 rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 font-semibold cursor-pointer"
