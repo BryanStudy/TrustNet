@@ -78,7 +78,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
     );
 
     try {
-      const presignedUrlResponse = await fetch("/api/s3/upload", {
+      const presignedUrlResponse = await fetch("/api/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

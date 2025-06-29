@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 import axios from '@/utils/axios';
+import Uploader from '@/components/uploader';
 
 function isValidEmail(email: string) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
@@ -111,6 +112,17 @@ export default function SignUpPage() {
               value={picture}
               onChange={e => setPicture(e.target.value)}
             />
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-700">Test Uploader Component</label>
+            <div className="mt-1">
+              <Uploader
+                fileLimit={1}
+                sizeLimit={1024 * 1024 * 5} // 5MB
+                folderPath="test-uploads"
+              />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Password</label>
