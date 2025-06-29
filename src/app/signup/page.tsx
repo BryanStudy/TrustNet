@@ -56,7 +56,8 @@ export default function SignUpPage() {
         lastName,
         picture,
         email,
-        password
+        password,
+        role: 'customer'
       });
       router.push('/home');
     } catch (err: any) {
@@ -172,14 +173,14 @@ export default function SignUpPage() {
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <button
             type="submit"
-            className="w-full py-3 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-semibold cursor-pointer"
+            className="w-full py-3 text-white bg-black rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-semibold cursor-pointer"
           >
             Sign Up
           </button>
         </form>
         <p className="text-sm text-center text-gray-600">
           Already have an account?{' '}
-          <a className="font-medium text-blue-500 hover:underline" href="/login">
+          <a className="font-medium text-black hover:underline" href="/">
             Sign In
           </a>
         </p>

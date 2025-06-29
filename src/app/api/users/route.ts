@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import ddbDocClient from '@/utils/dynamodb';
 import { SignJWT } from 'jose';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Validates if the provided email string matches a basic email format.
@@ -17,14 +18,15 @@ const JWT_SECRET = process.env.JWT_SECRET;
  */
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password, picture } = await req.json();
+    const { firstName, lastName, email, password, picture, role } = await req.json();
 
     // Validate incoming data
     if (!firstName || typeof firstName !== 'string' ||
         !lastName || typeof lastName !== 'string' ||
         !email || typeof email !== 'string' ||
         !password || typeof password !== 'string' ||
-        !picture || typeof picture !== 'string') {
+        !picture || typeof picture !== 'string' ||
+        !role) {
       return NextResponse.json({
         error: 'All fields (firstName, lastName, email, password, picture) are required and must be strings.'
       }, { status: 400 });
@@ -52,14 +54,15 @@ export async function POST(req: NextRequest) {
 
     // Store user (plaintext password for now)
     const user = {
-      userId: crypto.randomUUID(),
+      userId: uuidv4(),
       email,
       firstName,
       lastName,
       password,
       picture,
-      role: 'customer',
+      role,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     await ddbDocClient.send(new PutCommand({
       TableName: 'users',

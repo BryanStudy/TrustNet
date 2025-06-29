@@ -5,7 +5,7 @@ import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import axios from '@/utils/axios';
 import { Spinner } from '@/components/spinner';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 interface UserInfo {
     userId: string;

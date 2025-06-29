@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
-import axios from '@/utils/axios';
-import { toast } from 'react-toastify';
+import axios from '@/utils/axios';  
 import { Spinner } from '@/components/spinner';
+import { toast } from 'sonner';
 
 export default function LandingPage() {
     const router = useRouter();

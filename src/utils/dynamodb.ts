@@ -1,5 +1,5 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, TranslateConfig } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({
   region: process.env.NEXT_PUBLIC_AWS_REGION,
@@ -10,6 +10,21 @@ const client = new DynamoDBClient({
   }
 });
 
-const ddbDocClient = DynamoDBDocumentClient.from(client);
+const marshallOptions: TranslateConfig["marshallOptions"] = {
+  convertEmptyValues: false,
+  removeUndefinedValues: true,
+  convertClassInstanceToMap: false,
+};
+
+const unmarshallOptions: TranslateConfig["unmarshallOptions"] = {
+  wrapNumbers: false,
+};
+
+const translateConfig: TranslateConfig = {
+  marshallOptions,
+  unmarshallOptions,
+};
+
+const ddbDocClient = DynamoDBDocumentClient.from(client, translateConfig);
 
 export default ddbDocClient; 

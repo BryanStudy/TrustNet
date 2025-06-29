@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from '@/utils/axios';
-import { toast } from 'react-toastify';
 import { Spinner } from '@/components/spinner';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -60,7 +60,7 @@ export default function LoginPage() {
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <button
             type="submit"
-            className="w-full py-3 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-semibold cursor-pointer flex items-center justify-center"
+            className="w-full py-3 text-white bg-black rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black font-semibold cursor-pointer flex items-center justify-center"
             disabled={loading}
           >
             {loading ? <Spinner size="small" className="mr-2" /> : 'Sign In'}
@@ -68,7 +68,7 @@ export default function LoginPage() {
         </form>
         <p className="text-sm text-center text-gray-600">
           Don't have an account?{' '}
-          <a className="font-medium text-blue-500 hover:underline" href="/signup">
+          <a className="font-medium text-black hover:underline" href="/signup">
             Sign Up
           </a>
         </p>
