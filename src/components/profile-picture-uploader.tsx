@@ -26,36 +26,41 @@ interface ProfilePictureUploaderProps {
   onUploadComplete?: (fileName: string) => void;
 }
 
-export default function ProfilePictureUploader({ 
-  folderPath = "profile-pictures", 
+export default function ProfilePictureUploader({
+  folderPath = "profile-pictures",
   sizeLimit = 1024 * 1024 * 5,
-  onUploadComplete 
+  onUploadComplete,
 }: ProfilePictureUploaderProps) {
   const [file, setFile] = useState<UploadFile | null>(null);
 
   async function removeFile() {
     if (!file) return;
-    
+
     try {
       if (file.objectUrl) {
         URL.revokeObjectURL(file.objectUrl);
       }
 
-      setFile(prev => prev ? { ...prev, isDeleting: true } : null);
+      setFile((prev) => (prev ? { ...prev, isDeleting: true } : null));
 
       const deleteFileResponse = await fetch("/api/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           key: file.fileName,
-          folderPath: folderPath
+          folderPath: folderPath,
         }),
       });
 
       if (!deleteFileResponse.ok) {
-        console.error("Failed to delete file:", await deleteFileResponse.text());
+        console.error(
+          "Failed to delete file:",
+          await deleteFileResponse.text()
+        );
         toast.error("Failed to delete file");
-        setFile(prev => prev ? { ...prev, isDeleting: false, error: true } : null);
+        setFile((prev) =>
+          prev ? { ...prev, isDeleting: false, error: true } : null
+        );
         return;
       }
 
@@ -64,12 +69,14 @@ export default function ProfilePictureUploader({
     } catch (error) {
       console.error("Error deleting file:", error);
       toast.error("Failed to delete file");
-      setFile(prev => prev ? { ...prev, isDeleting: false, error: true } : null);
+      setFile((prev) =>
+        prev ? { ...prev, isDeleting: false, error: true } : null
+      );
     }
   }
 
   async function uploadFile(uploadFile: File) {
-    setFile(prev => prev ? { ...prev, uploading: true } : null);
+    setFile((prev) => (prev ? { ...prev, uploading: true } : null));
 
     try {
       const presignedUrlResponse = await fetch("/api/s3", {
@@ -84,12 +91,17 @@ export default function ProfilePictureUploader({
       });
 
       if (!presignedUrlResponse.ok) {
-        console.error("Failed to get presigned URL:", await presignedUrlResponse.text());
+        console.error(
+          "Failed to get presigned URL:",
+          await presignedUrlResponse.text()
+        );
         toast.error("Failed to get presigned URL");
-        setFile(prev => prev ? { ...prev, uploading: false, progress: 0, error: true } : null);
+        setFile((prev) =>
+          prev ? { ...prev, uploading: false, progress: 0, error: true } : null
+        );
         return;
       }
-      
+
       const { presignedUrl, fileName } = await presignedUrlResponse.json();
 
       await new Promise<void>((resolve, reject) => {
@@ -97,21 +109,29 @@ export default function ProfilePictureUploader({
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
             const percentageCompleted = (event.loaded / event.total) * 100;
-            setFile(prev => prev ? {
-              ...prev,
-              progress: Math.round(percentageCompleted),
-              fileName: fileName,
-            } : null);
+            setFile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    progress: Math.round(percentageCompleted),
+                    fileName: fileName,
+                  }
+                : null
+            );
           }
         };
         xhr.onload = () => {
           if (xhr.status === 200 || xhr.status === 204) {
-            setFile(prev => prev ? {
-              ...prev,
-              progress: 100,
-              uploading: false,
-              error: false,
-            } : null);
+            setFile((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    progress: 100,
+                    uploading: false,
+                    error: false,
+                  }
+                : null
+            );
             toast.success("Profile picture uploaded successfully");
             if (onUploadComplete && fileName) {
               onUploadComplete(fileName);
@@ -131,7 +151,9 @@ export default function ProfilePictureUploader({
     } catch (error) {
       console.error("Error uploading profile picture:", error);
       toast.error("Failed to upload profile picture");
-      setFile(prev => prev ? { ...prev, uploading: false, progress: 0, error: true } : null);
+      setFile((prev) =>
+        prev ? { ...prev, uploading: false, progress: 0, error: true } : null
+      );
     }
   }
 
@@ -157,7 +179,9 @@ export default function ProfilePictureUploader({
 
       const errorMessages = {
         "too-many-files": "You can only upload one profile picture",
-        "file-too-large": `File size cannot exceed ${Math.round(sizeLimit / (1024 * 1024))}MB`,
+        "file-too-large": `File size cannot exceed ${Math.round(
+          sizeLimit / (1024 * 1024)
+        )}MB`,
         "file-invalid-type": "Only images are allowed",
       };
 
@@ -197,14 +221,19 @@ export default function ProfilePictureUploader({
           <CardContent className="flex flex-col items-center justify-center h-full w-full">
             <input {...getInputProps()} />
             {isDragActive ? (
-              <p className="text-sm text-gray-600">Drop your profile picture here</p>
+              <p className="text-sm text-gray-600">
+                Drop your profile picture here
+              </p>
             ) : (
               <div className="flex flex-col items-center justify-center h-full w-full gap-y-4">
                 <User className="w-12 h-12 text-gray-400" />
                 <p className="text-sm text-gray-600 text-center">
                   Drop your profile picture here, or click to select
                 </p>
-                <Button className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90" type="button">
+                <Button
+                  className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90"
+                  type="button"
+                >
                   Choose Picture
                 </Button>
               </div>
@@ -259,4 +288,4 @@ export default function ProfilePictureUploader({
       )}
     </div>
   );
-} 
+}

@@ -1,46 +1,38 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
-import axios from '@/utils/axios';
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import axios from "@/utils/axios";
+import { useQuery } from "@tanstack/react-query";
 
 // Only keep local user state and backend API calls
 
 export type UserInfo = {
-    userId: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    picture: string;
-    createdAt: string;
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  picture: string;
+  createdAt: string;
+  role: "admin" | "customer";
 };
 
-/**
- * Hook for managing user data and fetching user attributes.
- */
 export function useUser() {
-    const router = useRouter();
-    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-    const [loading, setLoading] = useState(true);
+  const { data, isLoading, refetch, isError, error } = useQuery<UserInfo>({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const res = await axios.get("/api/me");
+      return res.data.user;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2, // if res failed, retry 2 times before giving up and returning error
+  });
 
-    const fetchUser = useCallback(async () => {
-        setLoading(true);
-        try {
-            const res = await axios.get('/api/me');
-            setUserInfo(res.data.user);
-            console.log(res.data);
-        } catch {
-            // TODO: Handle this better
-            
-            setUserInfo(null); 
-        } finally {
-            setLoading(false);
-        }
-    }, [router]);
-
-    useEffect(() => {
-        fetchUser();
-    }, [fetchUser]);
-
-    return { userInfo, loading, refetch: fetchUser };
-} 
+  return {
+    userInfo: data,
+    loading: isLoading,
+    refetch,
+    isError,
+    error,
+  };
+}
