@@ -31,9 +31,9 @@ export interface ListFilesResponse {
 
 // Internal helper functions
 function getBucketName(): string {
-  const bucketName = process.env.S3_BUCKET_NAME;
+  const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME;
   if (!bucketName) {
-    throw new Error("S3_BUCKET_NAME environment variable is not set");
+    throw new Error("NEXT_PUBLIC_S3_BUCKET_NAME environment variable is not set");
   }
   return bucketName;
 }
