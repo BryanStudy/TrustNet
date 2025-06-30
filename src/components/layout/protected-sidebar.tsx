@@ -14,8 +14,14 @@ import {
 } from "../ui/sidebar";
 import Link from "next/link";
 import { useState } from "react";
-import { adminSidebar, customerSidebar } from "@/config/sidebar";
+import {
+  adminSidebar,
+  customerSidebar,
+  adminHome,
+  customerHome,
+} from "@/config/sidebar";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import UserCard from "@/components/user-card";
 
 interface Props {
   userInfo: UserInfo;
@@ -37,10 +43,13 @@ export default function ProtectedSidebar({ userInfo }: Props) {
     <Sidebar className="border-r border-[--c-gray] bg-[--c-white] ">
       {/* Header Here */}
       <SidebarHeader className="mx-4 py-6">
-        <div className="flex gap-3 my-4 items-center">
+        <Link
+          href={userInfo.role === "customer" ? customerHome : adminHome}
+          className="flex gap-3 my-4 items-center"
+        >
           <AiFillSecurityScan className="text-4xl text-[var(--c-violet)] shrink-0" />
           <div className="text-[1.5rem] font-mono mr-8">TrustNet</div>
-        </div>
+        </Link>
       </SidebarHeader>
       {/* Content Here */}
       <SidebarContent>
@@ -73,7 +82,7 @@ export default function ProtectedSidebar({ userInfo }: Props) {
                       <Link
                         key={child.href}
                         href={child.href}
-                        className="text-xs block hover:text-[var(--c-violet)] my-2 ml-2"
+                        className="text-xs block hover:text-[var(--c-violet)] my-3 ml-2"
                       >
                         {child.label}
                       </Link>
@@ -99,8 +108,7 @@ export default function ProtectedSidebar({ userInfo }: Props) {
       </SidebarContent>
       {/* Footer Here */}
       <SidebarFooter>
-        <p>{userInfo.firstName}</p>
-        <p>{userInfo.role}</p>
+        <UserCard userInfo={userInfo} />
       </SidebarFooter>
     </Sidebar>
   );
