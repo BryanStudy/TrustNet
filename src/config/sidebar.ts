@@ -14,6 +14,7 @@ export type SidebarItem = {
 };
 
 // Customer Sidebar
+export const customerHome = "/digital-threats";
 export const customerSidebar: SidebarItem[] = [
   {
     label: "Digital Threats",
@@ -41,6 +42,7 @@ export const customerSidebar: SidebarItem[] = [
 ];
 
 // Admin Sidebar
+export const adminHome = "/digital-threats"; // you can change this to dashboard if you're making a dashboard for admin
 export const adminSidebar: SidebarItem[] = [
   {
     label: "Digital Threats",
