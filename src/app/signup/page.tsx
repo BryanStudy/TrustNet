@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 import axios from '@/utils/axios';
-import Uploader from '@/components/uploader';
+import ProfilePictureUploader from '@/components/profile-picture-uploader';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 function isValidEmail(email: string) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
@@ -67,136 +68,129 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-2xl p-8 space-y-6 bg-white rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold text-center">Sign Up</h1>
-        <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSignUp(); }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-gray-700">First Name</label>
-              <input
-                type="text"
-                placeholder="First Name"
-                className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={firstName}
-                onChange={e => setFirstName(e.target.value)}
-              />
+    <div className="flex items-center justify-center min-h-screen bg-[var(--c-silver)] p-10">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle className="text-3xl text-center">Sign Up</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <form className="space-y-4" onSubmit={e => { e.preventDefault(); handleSignUp(); }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700">First Name</label>
+                <input
+                  type="text"
+                  placeholder="First Name"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)]"
+                  value={firstName}
+                  onChange={e => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700">Last Name</label>
+                <input
+                  type="text"
+                  placeholder="Last Name"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)]"
+                  value={lastName}
+                  onChange={e => setLastName(e.target.value)}
+                />
+              </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Last Name</label>
+              <label className="text-sm font-medium text-gray-700">Email</label>
               <input
-                type="text"
-                placeholder="Last Name"
-                className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
+                type="email"
+                placeholder="your@email.com"
+                className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)]"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
               />
             </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Picture URL</label>
-            <input
-              type="text"
-              placeholder="https://example.com/image.png"
-              className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={picture}
-              onChange={e => setPicture(e.target.value)}
-            />
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium text-gray-700">Test Uploader Component</label>
-            <div className="mt-1">
-              <Uploader
-                fileLimit={1}
-                sizeLimit={1024 * 1024 * 5} // 5MB
-                folderPath="test-uploads"
-              />
+            <div>
+              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
+              <div className="mt-1">
+                <ProfilePictureUploader
+                  folderPath="profile-pictures"
+                  sizeLimit={1024 * 1024 * 5} // 5MB
+                  onUploadComplete={(fileName) => setPicture(fileName)}
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                onClick={() => setShowPassword(v => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <EyeSlashIcon className="w-5 h-5" />
-                ) : (
-                  <EyeIcon className="w-5 h-5" />
-                )}
-              </button>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)] pr-12"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(v => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              <div className="pt-2">
+                {passwordRequirements.map((req, index) => (
+                  <div key={index} className={`flex items-center text-sm ${req.regex.test(password) ? 'text-green-600' : 'text-gray-400'}`}>
+                    <CheckCircleIcon className={`w-5 h-5 mr-2 ${req.regex.test(password) ? 'text-green-500' : 'text-gray-300'}`} />
+                    {req.text}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="pt-2">
-              {passwordRequirements.map((req, index) => (
-                <div key={index} className={`flex items-center text-sm ${req.regex.test(password) ? 'text-green-600' : 'text-gray-400'}`}>
-                  <CheckCircleIcon className={`w-5 h-5 mr-2 ${req.regex.test(password) ? 'text-green-500' : 'text-gray-300'}`} />
-                  {req.text}
-                </div>
-              ))}
+            <div>
+              <label className="text-sm font-medium text-gray-700">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)] pr-12"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowConfirmPassword(v => !v)}
+                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="w-5 h-5" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Confirm Password</label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-12"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-              />
-              <button
-                type="button"
-                tabIndex={-1}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                onClick={() => setShowConfirmPassword(v => !v)}
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-              >
-                {showConfirmPassword ? (
-                  <EyeSlashIcon className="w-5 h-5" />
-                ) : (
-                  <EyeIcon className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-          </div>
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          <button
-            type="submit"
-            className="w-full py-3 text-white bg-black rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-semibold cursor-pointer"
-          >
-            Sign Up
-          </button>
-        </form>
-        <p className="text-sm text-center text-gray-600">
-          Already have an account?{' '}
-          <a className="font-medium text-black hover:underline" href="/">
-            Sign In
-          </a>
-        </p>
-      </div>
+            {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+            <button
+              type="submit"
+              className="w-full py-3 text-white bg-[var(--c-violet)] rounded-lg hover:bg-[var(--c-violet)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--c-violet)] font-semibold cursor-pointer"
+            >
+              Sign Up
+            </button>
+          </form>
+          <p className="text-sm text-center text-gray-600">
+            Already have an account?{' '}
+            <a className="font-medium text-[var(--c-violet)] hover:underline" href="/">
+              Sign In
+            </a>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

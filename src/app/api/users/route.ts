@@ -3,40 +3,43 @@ import { PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import ddbDocClient from '@/utils/dynamodb';
 import { SignJWT } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
-
-/**
- * Validates if the provided email string matches a basic email format.
- */
-function isValidEmail(email: string) {
-  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
-}
+import { z } from 'zod';
 
 const JWT_SECRET = process.env.JWT_SECRET;
+
+// User creation validation schema
+const createUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50, "First name too long"),
+  lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
+  email: z.string().email("Invalid email format"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[0-9]/, "Password must contain at least 1 number")
+    .regex(/[a-z]/, "Password must contain at least 1 lowercase letter")
+    .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least 1 special character"),
+  picture: z.string().min(1, "Profile picture is required"),
+  role: z.enum(["customer", "admin"], {
+    errorMap: () => ({ message: "Role must be either 'customer' or 'admin'" }),
+  }),
+});
 
 /**
  * Handles user signup by creating a new user in DynamoDB and generating a JWT.
  */
 export async function POST(req: NextRequest) {
   try {
-    const { firstName, lastName, email, password, picture, role } = await req.json();
+    const body = await req.json();
 
     // Validate incoming data
-    if (!firstName || typeof firstName !== 'string' ||
-        !lastName || typeof lastName !== 'string' ||
-        !email || typeof email !== 'string' ||
-        !password || typeof password !== 'string' ||
-        !picture || typeof picture !== 'string' ||
-        !role) {
-      return NextResponse.json({
-        error: 'All fields (firstName, lastName, email, password, picture) are required and must be strings.'
-      }, { status: 400 });
+    const validationResult = createUserSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => err.message).join(', ');
+      return NextResponse.json({ error: errors }, { status: 400 });
     }
-    if (!isValidEmail(email)) {
-      return NextResponse.json({ error: 'Invalid email format.' }, { status: 400 });
-    }
-    if (password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
-    }
+
+    const { firstName, lastName, email, password, picture, role } = validationResult.data;
 
     // Check if user already exists
     const query = new QueryCommand({

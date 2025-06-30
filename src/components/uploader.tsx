@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { FileRejection, useDropzone } from "react-dropzone";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/utils/cn";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
@@ -14,11 +14,10 @@ type UploadFile = {
   file: File;
   uploading: boolean;
   progress: number;
-  key?: string;
+  fileName?: string; // Store just the filename, not the full key
   isDeleting: boolean;
   error: boolean;
   objectUrl?: string;
-
 };
 
 interface UploaderProps {
@@ -43,13 +42,17 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
         prevFiles.map((f) => (f.id === fileId ? { ...f, isDeleting: true } : f))
       );
 
-      const deleteFileResponse = await fetch("/api/s3/delete", {
+      const deleteFileResponse = await fetch("/api/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ key: fileToRemove?.key }),
+        body: JSON.stringify({ 
+          key: fileToRemove?.fileName,
+          folderPath: folderPath
+        }),
       });
 
       if (!deleteFileResponse.ok) {
+        console.error("Failed to delete file:", await deleteFileResponse.text());
         toast.error("Failed to delete file");
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
@@ -63,6 +66,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
 
       setFiles((prevFiles) => prevFiles.filter((f) => f.id !== fileId));
     } catch (error) {
+      console.error("Error deleting file:", error);
       toast.error("Failed to delete file");
       setFiles((prevFiles) =>
         prevFiles.map((f) =>
@@ -90,6 +94,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
       });
 
       if (!presignedUrlResponse.ok) {
+        console.error("Failed to get presigned URL:", await presignedUrlResponse.text());
         toast.error("Failed to get presigned URL");
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
@@ -100,7 +105,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
         );
         return;
       }
-      const { presignedUrl, key } = await presignedUrlResponse.json();
+      const { presignedUrl, fileName } = await presignedUrlResponse.json();
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -113,7 +118,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
                   ? {
                       ...f,
                       progress: Math.round(percentageCompleted),
-                      key: key,
+                      fileName: fileName,
                     }
                   : f
               )
@@ -148,6 +153,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
         xhr.send(file);
       });
     } catch (error) {
+      console.error("Error uploading file:", error);
       toast.error("Failed to upload file");
       setFiles((prevFiles) =>
         prevFiles.map((f) =>

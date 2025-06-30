@@ -1,12 +1,21 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, TranslateConfig } from '@aws-sdk/lib-dynamodb';
 
+const REGION = process.env.NEXT_PUBLIC_AWS_REGION;
+const ACCESSKEYID = process.env.AWS_ACCESS_KEY_ID;
+const SECRETACCESSKEY = process.env.AWS_SECRET_ACCESS_KEY;
+const SESSIONTOKEN = process.env.AWS_SESSION_TOKEN;
+
+if (!REGION || !ACCESSKEYID || !SECRETACCESSKEY) {
+  throw new Error("AWS credentials are not set");
+}
+
 const client = new DynamoDBClient({
-  region: process.env.NEXT_PUBLIC_AWS_REGION,
+  region: REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    sessionToken: process.env.AWS_SESSION_TOKEN!,
+    accessKeyId: ACCESSKEYID,
+    secretAccessKey: SECRETACCESSKEY,
+    ...(SESSIONTOKEN && { sessionToken: SESSIONTOKEN }),
   }
 });
 

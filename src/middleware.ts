@@ -18,5 +18,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/home', '/profile'],
+  matcher: ['/home', '/profile'], // TODO: Add more routes here scam reports, digital threats, literacy hub, etc.
 }; 

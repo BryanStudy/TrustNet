@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat);
+  --font-mono: var(--font-space-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -41,10 +41,18 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --c-coal: var(--color-coal);
+  --c-white: var(--color-white);
+  --c-silver: var(--color-silver);
+  --c-gray: var(--color-gray);
+  --c-violet: var(--color-violet);
+  --c-mauve: var(--color-mauve);
 }
 
 :root {
   --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -74,8 +82,12 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --color-violet: oklch(0.5554 0.2125 289.43);
+  --color-mauve: oklch(0.966 0.0123 301.29);
+  --color-coal: oklch(0.1286 0 0);
+  --color-white: oklch(1 0 0);
+  --color-silver: oklch(0.9795 0.0054 274.97);
+  --color-gray: oklch(0.712 0.0107 267.33);
 }
 
 .dark {

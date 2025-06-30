@@ -21,8 +21,14 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      await axios.post('/api/login', { email, password });
-      router.push('/home');
+      const response = await axios.post('/api/login', { email, password });
+      console.log(response.data.user.role);
+      if (response.data.user.role === 'customer') {
+        router.push('/digital-threats');
+      } else {
+        router.push('/home');
+      }
+      // router.push('/home');
       toast.success('Logged in successfully');
     } catch (err: any) {
       toast.error('Login failed');
@@ -41,7 +47,7 @@ export default function LoginPage() {
             <label className="text-sm font-medium text-gray-700">Email</label>
             <input
               type="email"
-              placeholder="your@email.com"
+              placeholder="example@email.com"
               className="w-full px-4 py-3 mt-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -60,7 +66,7 @@ export default function LoginPage() {
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <button
             type="submit"
-            className="w-full py-3 text-white bg-black rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black font-semibold cursor-pointer flex items-center justify-center"
+            className="w-full py-3 text-white bg-[var(--c-violet)] rounded-lg hover:bg-[var(--c-violet)]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--c-violet)] font-semibold cursor-pointer flex items-center justify-center"
             disabled={loading}
           >
             {loading ? <Spinner size="small" className="mr-2" /> : 'Sign In'}
@@ -68,7 +74,7 @@ export default function LoginPage() {
         </form>
         <p className="text-sm text-center text-gray-600">
           Don't have an account?{' '}
-          <a className="font-medium text-black hover:underline" href="/signup">
+          <a className="font-medium text-[var(--c-violet)] hover:underline" href="/signup">
             Sign Up
           </a>
         </p>

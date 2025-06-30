@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/useUser';
-import axios from '@/utils/axios';  
+import axios from '@/utils/axios';      
 import { Spinner } from '@/components/spinner';
 import { toast } from 'sonner';
+import { constructFileUrl } from '@/utils/fileUtils';
 
 export default function LandingPage() {
     const router = useRouter();
@@ -14,18 +15,17 @@ export default function LandingPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <Spinner size="medium" className="mr-2" />
+                <Spinner size="medium" color="black" className="mr-2" />
             </div>
         );
     }
-    
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
             <div className="w-full max-w-md p-8 space-y-4 text-center bg-white rounded-xl shadow-lg">
                 {userInfo?.picture && (
                     <img
-                        src={userInfo.picture}
+                        src={constructFileUrl(userInfo.picture, "profile-pictures")}
                         alt="Profile"
                         className="w-24 h-24 mx-auto -mt-16 border-4 border-white rounded-full object-cover"
                     />
