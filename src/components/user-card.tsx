@@ -10,7 +10,7 @@ interface UserCardProps {
 
 export default function UserCard({ userInfo }: UserCardProps) {
   return (
-    <Link href="/profile" className="block">
+    <Link href="/home" className="block">
       <Card
         className="flex items-center gap-3 px-4 py-3 m-1 cursor-pointer transition-colors hover:bg-[var(--c-mauve)] w-auto"
         tabIndex={0}
