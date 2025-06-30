@@ -5,7 +5,8 @@ import { useUser } from '@/hooks/useUser';
 import { useRouter } from 'next/navigation';
 import axios from '@/utils/axios';
 import { Spinner } from '@/components/spinner';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
+import { constructFileUrl } from '@/utils/fileUtils';
 
 interface UserInfo {
     userId: string;
@@ -64,7 +65,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center space-x-6">
                     <img
-                        src={userInfo?.picture || '/default-avatar.png'}
+                        src={userInfo?.picture ? constructFileUrl(userInfo.picture, "profile-pictures") : '/default-avatar.png'}
                         alt="Profile"
                         className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
                     />

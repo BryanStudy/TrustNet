@@ -2,15 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { QueryCommand } from '@aws-sdk/lib-dynamodb';
 import ddbDocClient from '@/utils/dynamodb';
 import { SignJWT } from 'jose';
+import { z } from 'zod';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Login validation schema
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
+});
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required.' }, { status: 400 });
+    const body = await req.json();
+    
+    // Validate request body with Zod
+    const validationResult = loginSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => err.message).join(', ');
+      return NextResponse.json({ error: errors }, { status: 400 });
     }
+    
+    const { email, password } = validationResult.data;
 
     // Query DynamoDB for a user with the given email
     const command = new QueryCommand({
