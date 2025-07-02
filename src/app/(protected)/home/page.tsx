@@ -7,10 +7,12 @@ import axios from "@/utils/axios";
 import { Spinner } from "@/components/spinner";
 import { toast } from "sonner";
 import { constructFileUrl } from "@/utils/fileUtils";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LandingPage() {
   const router = useRouter();
   const { userInfo, loading } = useUser();
+  const queryClient = useQueryClient();
 
   if (loading) {
     return (
@@ -56,6 +58,7 @@ export default function LandingPage() {
           <button
             onClick={async () => {
               await axios.post("/api/logout");
+              queryClient.clear(); // clear query cache when user logs out
               router.push("/");
               toast.success("Logged out successfully");
             }}

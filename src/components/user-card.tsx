@@ -23,7 +23,7 @@ export default function UserCard({ userInfo }: UserCardProps) {
             />
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-extrabold text-sm truncate max-w-[160px]">
+            <span className="font-sans-bold text-sm truncate max-w-[160px]">
               {userInfo.firstName} {userInfo.lastName}
             </span>
             <span className="text-[0.8rem] text-muted-foreground truncate max-w-[160px]">
