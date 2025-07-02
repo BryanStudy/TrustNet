@@ -3,7 +3,7 @@ export type DigitalThreat = {
   artifact: string;
   description: string;
   type: "email" | "phone" | "url";
-  status: "verified" | "unverfied";
+  status: "verified" | "unverified";
   likes: number;
   submittedBy: string;
   createdAt: string;

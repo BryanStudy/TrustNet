@@ -133,10 +133,10 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
                     {typeIconMap[threat.type]}
                   </div>
                 </TableCell>
-                <TableCell className="text-center max-w-[20vw] text-ellipsis overflow-hidden">
+                <TableCell className="text-center max-w-[200px] text-ellipsis overflow-hidden">
                   {threat.artifact}
                 </TableCell>
-                <TableCell className="text-center max-w-[30vw] text-ellipsis overflow-hidden">
+                <TableCell className="text-center max-w-[400px] text-ellipsis overflow-hidden">
                   {threat.description}
                 </TableCell>
                 <TableCell className="text-center">
@@ -160,7 +160,7 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
                     variant="secondary"
                     size="icon"
                     aria-label="Edit"
-                    className="bg-[var(--c-mauve)]"
+                    className="bg-[var(--c-mauve)] text-[var(--c-violet)]"
                   >
                     <FaEdit />
                   </Button>
