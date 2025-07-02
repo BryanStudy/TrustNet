@@ -2,10 +2,10 @@
 
 import DigitalThreatsModal from "@/components/digital-threats/digital-threats-create-modal";
 import { DigitalThreatsTable } from "@/components/digital-threats/digital-threats-table";
-import { useDigitalThreats } from "@/hooks/useDigitalThreats";
+import { useMyDigitalThreats } from "@/hooks/useDigitalThreats";
 
 export default function MyThreatsPage() {
-  const { digitalThreats, loading, isError, refetch } = useDigitalThreats();
+  const { digitalThreats, loading, isError, refetch } = useMyDigitalThreats();
 
   return (
     <div className="flex flex-col max-w-7xl mx-auto">
