@@ -13,6 +13,7 @@ import { FaLink, FaPhoneAlt, FaEdit, FaTrash } from "react-icons/fa";
 import { DigitalThreat } from "@/types/digital-threats";
 import { IoMail } from "react-icons/io5";
 import DigitalThreatsUpdateModal from "./digital-threats-update-modal";
+import axios from "@/utils/axios";
 
 interface DigitalThreatsTableProps {
   threats: DigitalThreat[];
@@ -49,11 +50,22 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
     setEditModalOpen(true);
   };
 
-  // Handler for delete (stub)
-  const handleDelete = (threat: DigitalThreat) => {
-    // TODO: Implement delete logic (API call)
-    toast.error(`Deleted threat: ${threat.threatId}`);
-    // on success: onRefetch();
+  // Handler for delete
+  const handleDelete = async (threat: DigitalThreat) => {
+    try {
+      const response = await axios.delete(
+        `/api/digital-threats/delete-threats/${threat.threatId}`,
+        { data: { createdAt: threat.createdAt } }
+      );
+      if (response.status === 200) {
+        toast.success("Threat deleted successfully");
+        onRefetch();
+      } else {
+        toast.error(response.data?.error || "Failed to delete threat");
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to delete threat");
+    }
   };
 
   return (
