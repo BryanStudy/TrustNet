@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/form";
 import { FiEdit } from "react-icons/fi";
 import { toast } from "sonner";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import {
   Select,
   SelectTrigger,
@@ -35,7 +35,13 @@ import { AxiosError } from "axios";
 
 type DigitalThreatForm = z.infer<typeof createDigitalThreatSchema>;
 
-export default function DigitalThreatsModal() {
+interface DigitalThreatsModalProps {
+  onRefetch?: () => void;
+}
+
+export default function DigitalThreatsModal({
+  onRefetch,
+}: DigitalThreatsModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const form = useForm<DigitalThreatForm>({
@@ -63,6 +69,7 @@ export default function DigitalThreatsModal() {
         setLoading(false);
         setOpen(false);
         form.reset();
+        if (onRefetch) onRefetch();
       }
     } catch (error) {
       setLoading(false);

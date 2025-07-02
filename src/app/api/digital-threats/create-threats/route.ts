@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { verifyAuth } from "@/utils/auth";
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
@@ -62,6 +61,7 @@ export async function POST(req: NextRequest) {
       status,
       likes,
       ...body,
+      viewable: "THREATS",
     };
 
     const putDigitalThreatCommand = new PutCommand({
@@ -76,5 +76,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating digital threat:", error);
+    return NextResponse.json(
+      { error: "Failed to create digital threat" },
+      { status: 500 }
+    );
   }
 }
