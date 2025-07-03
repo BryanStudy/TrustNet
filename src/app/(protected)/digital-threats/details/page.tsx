@@ -3,6 +3,7 @@
 import React from "react";
 import { useSearchParams } from "next/navigation";
 import { useDigitalThreat } from "@/hooks/useDigitalThreats";
+import { useThreatLike } from "@/hooks/useThreatLike";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaLink, FaRegHeart, FaHeart, FaHashtag } from "react-icons/fa";
@@ -16,6 +17,8 @@ import { IoCopyOutline } from "react-icons/io5";
 import { IoMail } from "react-icons/io5";
 import { FaPhoneAlt } from "react-icons/fa";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { FaSpinner } from "react-icons/fa";
 
 const typeIconMap: Record<string, React.ReactElement> = {
   url: <FaLink />,
@@ -94,13 +97,25 @@ export default function DigitalThreatDetailsPage() {
     reporterName,
     loading: isLoading,
     isError,
+    refetch,
   } = useDigitalThreat(
     threatId || "",
     createdAt ? decodeURIComponent(createdAt) : ""
   );
 
-  // Like button state (mocked)
-  const [liked, setLiked] = React.useState(false);
+  // Integrate useThreatLike
+  const { liked, likeLoading, likeError, handleLike, handleUnlike } =
+    useThreatLike({
+      threatId: threatId || "",
+      createdAt: createdAt ? decodeURIComponent(createdAt) : "",
+      refetchThreat: refetch,
+    });
+
+  React.useEffect(() => {
+    if (likeError) {
+      toast.error("Failed to update like status. Please try again.");
+    }
+  }, [likeError]);
 
   if (isLoading) {
     return (
@@ -134,9 +149,12 @@ export default function DigitalThreatDetailsPage() {
           variant="ghost"
           size="icon"
           className="rounded-full border border-[var(--c-violet)] text-[var(--c-violet)] hover:bg-[var(--c-violet)]/10"
-          onClick={() => setLiked((v) => !v)}
+          onClick={liked ? handleUnlike : handleLike}
+          disabled={likeLoading}
         >
-          {liked ? (
+          {likeLoading ? (
+            <FaSpinner className="animate-spin text-2xl" />
+          ) : liked ? (
             <FaHeart className="text-2xl" />
           ) : (
             <FaRegHeart className="text-2xl" />
