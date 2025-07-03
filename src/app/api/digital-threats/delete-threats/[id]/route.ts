@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DeleteCommand,
+  GetCommand,
+  QueryCommand,
+  BatchWriteCommand,
+} from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
 
@@ -49,13 +54,60 @@ export async function DELETE(
     );
   }
 
-  // Delete item
+  // Cascade delete all threat-likes for this threatId
+  let likeDeleteWarning = null;
+  try {
+    // Query all likes for this threatId using the GSI
+    const queryCmd = new QueryCommand({
+      TableName: "threat-likes",
+      IndexName: "threatId-index",
+      KeyConditionExpression: "threatId = :threatId",
+      ExpressionAttributeValues: { ":threatId": id },
+      ProjectionExpression: "userId, threatId",
+    });
+    const { Items } = await ddbDocClient.send(queryCmd);
+    if (Items && Items.length > 0) {
+      // Batch delete in chunks of 25
+      for (let i = 0; i < Items.length; i += 25) {
+        const batch = Items.slice(i, i + 25);
+        const deleteRequests = batch.map((item) => ({
+          DeleteRequest: {
+            Key: { userId: item.userId, threatId: item.threatId },
+          },
+        }));
+        const batchCmd = new BatchWriteCommand({
+          RequestItems: {
+            "threat-likes": deleteRequests,
+          },
+        });
+        const batchRes = await ddbDocClient.send(batchCmd);
+        if (
+          batchRes.UnprocessedItems &&
+          Object.keys(batchRes.UnprocessedItems).length > 0
+        ) {
+          likeDeleteWarning =
+            "Some threat-likes could not be deleted. Please check the logs.";
+        }
+      }
+    }
+  } catch (error) {
+    likeDeleteWarning =
+      "Failed to delete some or all threat-likes. Please check the logs.";
+  }
+
+  // Delete the threat itself
   try {
     const deleteCmd = new DeleteCommand({
       TableName: "digital-threats",
       Key: { threatId: id, createdAt },
     });
     await ddbDocClient.send(deleteCmd);
+    if (likeDeleteWarning) {
+      return NextResponse.json({
+        message: "Threat deleted, but some threat-likes may remain.",
+        warning: likeDeleteWarning,
+      });
+    }
     return NextResponse.json({ message: "Threat deleted successfully" });
   } catch (error) {
     return NextResponse.json(
