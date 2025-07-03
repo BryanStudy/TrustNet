@@ -35,12 +35,40 @@ export function useMyDigitalThreats() {
       );
       return res.data.threats;
     },
-    staleTime: 5 * 60 * 1000, // 2 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 2,
   });
 
   return {
     digitalThreats: data || [],
+    loading: isLoading,
+    refetch,
+    isError,
+    error,
+  };
+}
+
+export function useDigitalThreat(threatId: string, createdAt: string) {
+  const { data, isLoading, refetch, isError, error } = useQuery<{
+    threat: DigitalThreat;
+    reporterName: string;
+  }>({
+    queryKey: ["digital-threat", threatId, createdAt],
+    queryFn: async () => {
+      const res = await axios.post(
+        `/api/digital-threats/read-threats/${threatId}`,
+        { createdAt }
+      );
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    enabled: !!threatId && !!createdAt, // Only run if both parameters are provided
+  });
+
+  return {
+    digitalThreat: data?.threat,
+    reporterName: data?.reporterName,
     loading: isLoading,
     refetch,
     isError,

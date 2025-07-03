@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableHeader,
@@ -34,14 +35,19 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
   isLoading,
   isError,
 }) => {
+  const router = useRouter();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedThreat, setSelectedThreat] = useState<DigitalThreat | null>(
     null
   );
 
   // Handler for row click
-  const handleRowClick = (threatId: string) => {
-    toast.success(`Threat ID: ${threatId}`);
+  const handleRowClick = (threat: DigitalThreat) => {
+    const params = new URLSearchParams({
+      threatId: threat.threatId,
+      createdAt: encodeURIComponent(threat.createdAt),
+    });
+    router.push(`/digital-threats/details?${params.toString()}`);
   };
 
   // Handler for edit
@@ -126,7 +132,7 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
               <TableRow
                 key={threat.threatId}
                 className="cursor-pointer hover:bg-[var(--c-mauve)]/40 transition-colors"
-                onClick={() => handleRowClick(threat.threatId)}
+                onClick={() => handleRowClick(threat)}
               >
                 <TableCell className="text-center">
                   <div className="flex justify-center">

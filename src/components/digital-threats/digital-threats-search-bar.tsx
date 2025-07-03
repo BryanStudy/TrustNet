@@ -54,9 +54,9 @@ export const DigitalThreatsSearchBar: React.FC<SearchBarProps> = ({
       </SelectTrigger>
       <SelectContent className="font-mono text-base">
         <SelectItem value="all">All</SelectItem>
-        <SelectItem value="url">url</SelectItem>
-        <SelectItem value="email">email</SelectItem>
-        <SelectItem value="phone">phone</SelectItem>
+        <SelectItem value="url">Url</SelectItem>
+        <SelectItem value="email">Email</SelectItem>
+        <SelectItem value="phone">Phone</SelectItem>
       </SelectContent>
     </Select>
     <Select value={status} onValueChange={onStatusChange}>
