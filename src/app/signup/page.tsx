@@ -107,16 +107,7 @@ export default function SignUpPage() {
                 onChange={e => setEmail(e.target.value)}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
-              <div className="mt-1">
-                <ProfilePictureUploader
-                  folderPath="profile-pictures"
-                  sizeLimit={1024 * 1024 * 5} // 5MB
-                  onUploadComplete={(fileName) => setPicture(fileName)}
-                />
-              </div>
-            </div>
+            
             <div>
               <label className="text-sm font-medium text-gray-700">Password</label>
               <div className="relative">
@@ -173,6 +164,16 @@ export default function SignUpPage() {
                     <EyeIcon className="w-5 h-5" />
                   )}
                 </button>
+              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Profile Picture</label>
+              <div className="mt-1">
+                <ProfilePictureUploader
+                  folderPath="profile-pictures"
+                  sizeLimit={1024 * 1024 * 5} // 5MB
+                  onUploadComplete={(fileName) => setPicture(fileName)}
+                />
               </div>
             </div>
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
