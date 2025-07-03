@@ -22,7 +22,7 @@ export const customerSidebar: SidebarItem[] = [
     children: [
       { label: "Directory", href: "/digital-threats" },
       { label: "My Threats", href: "/digital-threats/my-threats" },
-      { label: "Liked Threats", href: "/digital-threats/liked" },
+      { label: "Liked Threats", href: "/digital-threats/liked-threats" },
     ],
   },
   {

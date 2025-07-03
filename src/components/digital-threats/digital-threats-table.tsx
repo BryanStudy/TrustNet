@@ -15,6 +15,7 @@ import { DigitalThreat } from "@/types/digital-threats";
 import { IoMail } from "react-icons/io5";
 import DigitalThreatsUpdateModal from "./digital-threats-update-modal";
 import axios from "@/utils/axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DigitalThreatsTableProps {
   threats: DigitalThreat[];
@@ -36,6 +37,7 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
   isError,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedThreat, setSelectedThreat] = useState<DigitalThreat | null>(
     null
@@ -65,6 +67,10 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
       );
       if (response.status === 200) {
         toast.success("Threat deleted successfully");
+        // Invalidate all relevant queries
+        queryClient.invalidateQueries({ queryKey: ["digital-threat"] });
+        queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
+        queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
         onRefetch();
       } else {
         toast.error(response.data?.error || "Failed to delete threat");
