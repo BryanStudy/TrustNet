@@ -31,6 +31,7 @@ import axios from "@/utils/axios";
 import { createDigitalThreatSchema } from "@/schema/digital-threats";
 import { AxiosError } from "axios";
 import { DigitalThreat } from "@/types/digital-threats";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface DigitalThreatsUpdateModalProps {
   open: boolean;
@@ -48,6 +49,7 @@ export default function DigitalThreatsUpdateModal({
   onRefetch,
 }: DigitalThreatsUpdateModalProps) {
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const form = useForm<DigitalThreatForm>({
     resolver: zodResolver(createDigitalThreatSchema),
     defaultValues: {
@@ -83,6 +85,10 @@ export default function DigitalThreatsUpdateModal({
         toast.success("Threat updated successfully");
         setLoading(false);
         onOpenChange(false);
+        // Invalidate all relevant queries
+        queryClient.invalidateQueries({ queryKey: ["digital-threat"] });
+        queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
+        queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
         if (onRefetch) onRefetch();
       }
     } catch (error) {

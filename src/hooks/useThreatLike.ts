@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@/utils/axios";
 import { useCallback } from "react";
 
@@ -11,6 +11,7 @@ export function useThreatLike({
   createdAt: string;
   refetchThreat: () => void;
 }) {
+  const queryClient = useQueryClient();
   // Query: check if user has liked this threat
   const {
     data: likeStatus,
@@ -43,6 +44,9 @@ export function useThreatLike({
     onSuccess: () => {
       refetchThreat();
       refetchLikeStatus();
+      queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
+      queryClient.invalidateQueries({ queryKey: ["liked-digital-threats"] });
+      queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
     },
   });
 
@@ -61,6 +65,9 @@ export function useThreatLike({
     onSuccess: () => {
       refetchThreat();
       refetchLikeStatus();
+      queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
+      queryClient.invalidateQueries({ queryKey: ["liked-digital-threats"] });
+      queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
     },
   });
 

@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useDigitalThreats } from "@/hooks/useDigitalThreats";
+import { useLikedDigitalThreats } from "@/hooks/useLikedDigitalThreats";
 import { DigitalThreatsSearchBar } from "@/components/digital-threats/digital-threats-search-bar";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { FaLink, FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";
 import { useRouter } from "next/navigation";
@@ -31,25 +30,16 @@ function getRelativeTime(dateString: string) {
   });
 }
 
-const sortOptions = [
-  { label: "Latest", value: "latest" },
-  { label: "Oldest", value: "oldest" },
-  { label: "Most Likes", value: "likes" },
-];
-
-export default function DigitalThreatsDirectoryPage() {
+export default function LikedThreatsPage() {
   const router = useRouter();
-  const { digitalThreats, loading, isError } = useDigitalThreats();
-
-  // Filter/search state
+  const { digitalThreats, loading, isError } = useLikedDigitalThreats();
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
-  const [sortBy, setSortBy] = useState("latest");
 
-  // Filtering logic
+  // Filtering logic (same as directory)
   const filteredThreats = useMemo(() => {
-    let filtered = digitalThreats.filter((threat) => {
+    return digitalThreats.filter((threat) => {
       const matchesSearch =
         search === "" ||
         threat.artifact.toLowerCase().includes(search.toLowerCase()) ||
@@ -65,28 +55,11 @@ export default function DigitalThreatsDirectoryPage() {
           : true);
       return matchesSearch && matchesType && matchesStatus;
     });
-    // Sorting
-    if (sortBy === "latest") {
-      filtered = filtered.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    } else if (sortBy === "oldest") {
-      filtered = filtered.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-    } else if (sortBy === "likes") {
-      filtered = filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-    }
-    return filtered;
-  }, [digitalThreats, search, type, status, sortBy]);
+  }, [digitalThreats, search, type, status]);
 
   return (
     <div className="flex flex-col max-w-7xl mx-auto">
-      <h1 className="text-4xl font-sans-bold mt-10">
-        Digital Threats Directory
-      </h1>
+      <h1 className="text-4xl font-sans-bold mt-10">Liked Threats</h1>
       <DigitalThreatsSearchBar
         search={search}
         onSearchChange={setSearch}
@@ -104,31 +77,18 @@ export default function DigitalThreatsDirectoryPage() {
           </p>{" "}
           Result{filteredThreats.length !== 1 ? "s" : ""}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-md text-gray-500">Sort by:</span>
-          <select
-            className="font-mono border border-[var(--c-mauve)] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)] bg-white"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* No sort bar for liked threats */}
       </div>
       <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pb-8">
         {loading ? (
           <div className="text-center font-mono text-lg py-20">Loading...</div>
         ) : isError ? (
           <div className="text-center font-mono text-lg text-red-500 py-20">
-            Error loading digital threats.
+            Error loading liked threats.
           </div>
         ) : filteredThreats.length === 0 ? (
           <div className="text-center font-mono text-lg py-20">
-            No Digital Threats
+            No Liked Threats
           </div>
         ) : (
           filteredThreats.map((threat) => (
