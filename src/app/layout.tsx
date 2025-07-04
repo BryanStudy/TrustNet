@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { fontMontserrat, fontSpaceMono } from "../../public/fonts";
+import {
+  fontMontserrat,
+  fontMontserratBold,
+  fontSpaceMono,
+  fontSpaceMonoBold,
+} from "../../public/fonts";
+import QueryProvider from "@/components/provider/query-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "TrustNet",
@@ -17,11 +22,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fontMontserrat.variable} ${fontSpaceMono.variable}`}
+      className={`${fontMontserrat.variable} ${fontSpaceMono.variable} ${fontMontserratBold.variable} ${fontSpaceMonoBold.variable}`}
     >
       <body>
-        {children}
-        <ToastContainer />
+        <QueryProvider>{children}</QueryProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );
