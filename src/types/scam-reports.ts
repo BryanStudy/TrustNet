@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 export type ScamReport = {
   reportId: string;
   userId: string;
@@ -10,4 +8,9 @@ export type ScamReport = {
   createdAt: string;
   updatedAt: string;
   viewable: string;
+};
+
+export type ScamReportWithUserDetail = ScamReport & {
+  reporterName: string;
+  reporterPicture: string;
 };

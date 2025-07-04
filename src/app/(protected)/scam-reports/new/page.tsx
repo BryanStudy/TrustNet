@@ -47,6 +47,9 @@ export default function NewScamReportPage() {
       await axios.post("/api/scam-reports/create-report", data);
       toast.success("Scam report posted successfully!");
       queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });
+      queryClient.invalidateQueries({
+        queryKey: ["scam-reports-with-user-detail"],
+      });
       router.push("/scam-reports/my-reports");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to post scam report.");

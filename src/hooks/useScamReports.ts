@@ -1,6 +1,6 @@
 import axios from "@/utils/axios";
 import { useQuery } from "@tanstack/react-query";
-import { ScamReport } from "@/types/scam-reports";
+import { ScamReport, ScamReportWithUserDetail } from "@/types/scam-reports";
 
 export function useMyScamReports() {
   const { data, isLoading, refetch, isError, error } = useQuery<ScamReport[]>({
@@ -42,6 +42,83 @@ export function useScamReport(reportId: string, createdAt: string) {
 
   return {
     report: data ? data.report : undefined,
+    loading: isLoading,
+    refetch,
+    isError,
+    error,
+  };
+}
+
+export function useScamReportsWithUserDetail(
+  limit: number = 6,
+  lastEvaluatedKey?: any
+) {
+  const { data, isLoading, refetch, isError, error } = useQuery<{
+    reports: ScamReportWithUserDetail[];
+    lastEvaluatedKey: any;
+  }>({
+    queryKey: ["scam-reports-with-user-detail", limit, lastEvaluatedKey],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.set("limit", String(limit));
+      if (lastEvaluatedKey) {
+        params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
+      }
+      const res = await axios.get(
+        `/api/scam-reports/read-reports?${params.toString()}`
+      );
+      return res.data as {
+        reports: ScamReportWithUserDetail[];
+        lastEvaluatedKey: any;
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+
+  return {
+    reports: data?.reports || [],
+    lastEvaluatedKey: data?.lastEvaluatedKey,
+    loading: isLoading,
+    refetch,
+    isError,
+    error,
+  };
+}
+
+export function useSearchedScamReports(
+  title: string,
+  limit: number = 6,
+  lastEvaluatedKey?: any
+) {
+  const { data, isLoading, refetch, isError, error } = useQuery<{
+    reports: ScamReportWithUserDetail[];
+    lastEvaluatedKey: any;
+  }>({
+    queryKey: ["searched-scam-reports", title, limit, lastEvaluatedKey],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      params.set("title", title);
+      params.set("limit", String(limit));
+      if (lastEvaluatedKey) {
+        params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
+      }
+      const res = await axios.get(
+        `/api/scam-reports/search-reports?${params.toString()}`
+      );
+      return res.data as {
+        reports: ScamReportWithUserDetail[];
+        lastEvaluatedKey: any;
+      };
+    },
+    enabled: !!title,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+
+  return {
+    reports: data?.reports || [],
+    lastEvaluatedKey: data?.lastEvaluatedKey,
     loading: isLoading,
     refetch,
     isError,
