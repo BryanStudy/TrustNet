@@ -5,8 +5,6 @@ export function constructFileUrl(fileName: string, folderPath?: string): string 
   const bucketName = process.env.NEXT_PUBLIC_S3_BUCKET_NAME;
   const region = process.env.NEXT_PUBLIC_AWS_REGION || "ap-southeast-1";
   
-  console.log("constructFileUrl called with:", { fileName, folderPath });
-  
   if (!bucketName) {
     console.error("NEXT_PUBLIC_S3_BUCKET_NAME environment variable is not set");
     console.error("Please add NEXT_PUBLIC_S3_BUCKET_NAME=trustnet-bucket to your .env.local file");
