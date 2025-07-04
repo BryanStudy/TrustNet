@@ -7,7 +7,11 @@ const SECRETACCESSKEY = process.env.AWS_SECRET_ACCESS_KEY;
 const SESSIONTOKEN = process.env.AWS_SESSION_TOKEN;
 
 if (!REGION || !ACCESSKEYID || !SECRETACCESSKEY) {
+<<<<<<< Updated upstream
   throw new Error("AWS credentials are not set");
+=======
+  throw new Error("AWS credentials are not set for DynamoDB");
+>>>>>>> Stashed changes
 }
 
 const client = new DynamoDBClient({
