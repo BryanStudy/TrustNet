@@ -125,3 +125,33 @@ export function useSearchedScamReports(
     error,
   };
 }
+
+export function useScamReportWithUserDetail(
+  reportId: string,
+  createdAt: string
+) {
+  const { data, isLoading, refetch, isError, error } = useQuery<{
+    report: ScamReportWithUserDetail;
+  }>({
+    queryKey: ["scam-report-with-user-detail", reportId, createdAt],
+    queryFn: async () => {
+      const res = await axios.get(
+        `/api/scam-reports/read-reports/${reportId}/with-user-detail?createdAt=${encodeURIComponent(
+          createdAt
+        )}`
+      );
+      return res.data as { report: ScamReportWithUserDetail };
+    },
+    enabled: !!reportId && !!createdAt,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+
+  return {
+    report: data?.report,
+    loading: isLoading,
+    refetch,
+    isError,
+    error,
+  };
+}

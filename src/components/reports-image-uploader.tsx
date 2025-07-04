@@ -228,11 +228,11 @@ export default function ReportsImageUploader({
               />
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               type="button"
               onClick={removeInitialFile}
-              className="absolute top-2 right-2"
+              className="absolute top-2 right-2 bg-red-600 text-white hover:bg-red-600/70"
             >
               <Trash2 className="w-4 h-4" />
             </Button>

@@ -89,6 +89,10 @@ export default function EditScamReportPage({
       queryClient.invalidateQueries({
         queryKey: ["scam-reports-with-user-detail"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["scam-report-with-user-detail", id, createdAt],
+      });
+      queryClient.invalidateQueries({ queryKey: ["searched-scam-reports"] });
       router.push("/scam-reports/my-reports");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to update scam report.");

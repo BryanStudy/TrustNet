@@ -23,7 +23,6 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import { Spinner } from "@/components/spinner";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScamReportWithUserDetail } from "@/types/scam-reports";
 import { FaUser } from "react-icons/fa";
@@ -72,8 +71,17 @@ function ScamReportsSearchBar({
 
 // Card for a single scam report
 function ScamReportCard({ report }: { report: ScamReportWithUserDetail }) {
+  const handleCardClick = () => {
+    window.location.href = `/scam-reports/details?reportId=${encodeURIComponent(
+      report.reportId
+    )}&createdAt=${encodeURIComponent(report.createdAt)}`;
+  };
+
   return (
-    <Card className="flex flex-col h-full max-w-full justify-center py-2">
+    <Card
+      className="flex flex-col h-full max-w-full justify-center py-2 cursor-pointer hover:outline-2 hover:outline-[var(--c-violet)] hover:outline-offset-2"
+      onClick={handleCardClick}
+    >
       <div className="flex flex-row items-center justify-between px-4 py-4">
         <div className="w-full flex-2/3 border-r-2 border-[var(--c-gray)]/20">
           <div className="flex flex-col">
@@ -158,23 +166,39 @@ function ScamReportsPagination({
   return (
     <Pagination className="mt-10 mb-4">
       <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious
-            onClick={hasPrev ? onPrev : undefined}
-            aria-disabled={!hasPrev}
-          />
-        </PaginationItem>
-        <PaginationItem>
-          <span className="px-4 py-2 font-mono text-lg">
-            Page {currentPage}
-          </span>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext
-            onClick={hasNext ? onNext : undefined}
-            aria-disabled={!hasNext}
-          />
-        </PaginationItem>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem className="cursor-pointer">
+            <PaginationPrevious
+              onClick={hasPrev ? onPrev : undefined}
+              aria-disabled={!hasPrev}
+              className={
+                hasPrev
+                  ? "hover:bg-[var(--c-violet)] hover:text-white"
+                  : "hidden"
+              }
+            />
+          </PaginationItem>
+        </div>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem>
+            <span className="px-4 py-2 font-sans text-md text-black">
+              Page {currentPage}
+            </span>
+          </PaginationItem>
+        </div>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem className="cursor-pointer">
+            <PaginationNext
+              onClick={hasNext ? onNext : undefined}
+              aria-disabled={!hasNext}
+              className={
+                hasNext
+                  ? "hover:bg-[var(--c-violet)] hover:text-white"
+                  : "hidden"
+              }
+            />
+          </PaginationItem>
+        </div>
       </PaginationContent>
     </Pagination>
   );
@@ -183,8 +207,10 @@ function ScamReportsPagination({
 export default function ScamReportsPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [lastEvaluatedKey, setLastEvaluatedKey] = useState<any>(undefined);
+  // Cursor stack for backward navigation
+  const [cursorStack, setCursorStack] = useState<any[]>([undefined]); // Start with undefined for page 1
   const [page, setPage] = useState(1);
+  const lastEvaluatedKey = cursorStack[cursorStack.length - 1];
 
   // Determine mode
   const isSearching = search.trim() !== "";
@@ -202,7 +228,7 @@ export default function ScamReportsPage() {
 
   // Handlers
   const handleSearch = useCallback(() => {
-    setLastEvaluatedKey(undefined);
+    setCursorStack([undefined]);
     setPage(1);
     setSearch(searchInput.trim());
   }, [searchInput]);
@@ -211,25 +237,30 @@ export default function ScamReportsPage() {
     setSearchInput(val);
     if (val.trim() === "") {
       setSearch("");
-      setLastEvaluatedKey(undefined);
+      setCursorStack([undefined]);
       setPage(1);
     }
   };
 
   const handlePrev = () => {
-    // For cursor-based pagination, you need to keep a stack of previous keys
-    // For simplicity, we only support forward pagination here
-    // You can extend this to support backward navigation if you store previous keys in an array
+    if (page > 1) {
+      const newStack = [...cursorStack];
+      newStack.pop(); // Remove current page's cursor
+      setCursorStack(newStack);
+      setPage(page - 1);
+    }
   };
 
   const handleNext = () => {
-    setLastEvaluatedKey(nextKey);
-    setPage(page + 1);
+    if (nextKey) {
+      setCursorStack([...cursorStack, nextKey]);
+      setPage(page + 1);
+    }
   };
 
   // UI
   return (
-    <div className="max-w-7xl mx-auto px-4">
+    <div className="max-w-7xl mx-auto px-4 flex flex-col min-h-screen">
       <h1 className="text-4xl font-sans-bold mt-10">Scam Reports Forum</h1>
       <ScamReportsSearchBar
         search={searchInput}
@@ -252,16 +283,20 @@ export default function ScamReportsPage() {
           No scam reports found.
         </div>
       ) : (
-        <>
+        <div className="flex flex-col flex-1">
           <ScamReportGrid reports={reports} />
-          <ScamReportsPagination
-            hasPrev={false} // Not implemented
-            hasNext={!!nextKey}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            currentPage={page}
-          />
-        </>
+          {reports.length > 0 && (
+            <div className="mt-auto">
+              <ScamReportsPagination
+                hasPrev={page > 1}
+                hasNext={!!nextKey}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                currentPage={page}
+              />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

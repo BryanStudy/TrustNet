@@ -22,18 +22,30 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Query scam reports
+    // Fetch limit+1 items to check if there is a next page
     const queryCommand = new QueryCommand({
       TableName: "scam-reports",
       IndexName: "viewable-createdAt-index",
       KeyConditionExpression: "viewable = :viewable",
       ExpressionAttributeValues: { ":viewable": "REPORTS" },
       ScanIndexForward: false, // newest first
-      Limit: limit,
+      Limit: limit + 1,
       ...(lastEvaluatedKey ? { ExclusiveStartKey: lastEvaluatedKey } : {}),
     });
-    const { Items, LastEvaluatedKey } = await ddbDocClient.send(queryCommand);
-    const reports: ScamReport[] = (Items || []) as ScamReport[];
+    const { Items } = await ddbDocClient.send(queryCommand);
+    let reports: ScamReport[] = (Items || []) as ScamReport[];
+    let nextEvaluatedKey = null;
+    if (reports.length > limit) {
+      // There is a next page
+      const lastItem = reports[limit - 1];
+      // Only return the first 'limit' items
+      reports = reports.slice(0, limit);
+      nextEvaluatedKey = {
+        reportId: lastItem.reportId,
+        createdAt: lastItem.createdAt,
+        viewable: "REPORTS",
+      };
+    }
 
     // Collect unique userIds
     const userIds = Array.from(new Set(reports.map((r) => r.userId)));
@@ -73,7 +85,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       reports: reportsWithUserDetail,
-      lastEvaluatedKey: LastEvaluatedKey || null,
+      lastEvaluatedKey: nextEvaluatedKey,
     });
   } catch (error) {
     return NextResponse.json(

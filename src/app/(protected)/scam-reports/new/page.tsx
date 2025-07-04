@@ -50,6 +50,10 @@ export default function NewScamReportPage() {
       queryClient.invalidateQueries({
         queryKey: ["scam-reports-with-user-detail"],
       });
+      queryClient.invalidateQueries({ queryKey: ["searched-scam-reports"] });
+      queryClient.invalidateQueries({
+        queryKey: ["scam-report-with-user-detail"],
+      });
       router.push("/scam-reports/my-reports");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to post scam report.");

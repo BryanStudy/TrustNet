@@ -8,12 +8,12 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import { ScamReport } from "@/types/scam-reports";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "@/utils/axios";
+import { toast } from "sonner";
 
 interface MyReportsTableProps {
   reports: ScamReport[];
@@ -46,6 +46,20 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
       if (res.status === 200) {
         toast.success("Report deleted successfully");
         queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });
+        queryClient.invalidateQueries({
+          queryKey: ["scam-reports-with-user-detail"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["searched-scam-reports"] });
+        queryClient.invalidateQueries({
+          queryKey: ["scam-report", report.reportId, report.createdAt],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "scam-report-with-user-detail",
+            report.reportId,
+            report.createdAt,
+          ],
+        });
       } else {
         toast.error(res.data?.error || "Failed to delete report");
       }
@@ -106,11 +120,12 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
                 key={report.reportId}
                 className="cursor-pointer hover:bg-[var(--c-mauve)]/40 transition-colors"
                 onClick={(e) => {
-                  // Only toast if not clicking edit/delete
                   if (
                     (e.target as HTMLElement).closest("[data-action]") === null
                   ) {
-                    toast.info(`ReportId: ${report.reportId}`);
+                    window.location.href = `/scam-reports/details?reportId=${encodeURIComponent(
+                      report.reportId
+                    )}&createdAt=${encodeURIComponent(report.createdAt)}`;
                   }
                 }}
               >
