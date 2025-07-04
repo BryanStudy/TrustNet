@@ -22,6 +22,7 @@ export const config = {
     "/home",
     "/profile",
     "/scam-reports",
+    "/scam-reports/(.*)",
     "/digital-threats",
     "/digital-threats/(.*)",
     "/literacy-hub",
