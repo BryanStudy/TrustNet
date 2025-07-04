@@ -4,6 +4,7 @@ import { verifyAuth } from "@/utils/auth";
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "@/utils/dynamodb";
 import { createScamReportSchema } from "@/schema/scam-reports";
+import { ScamReport } from "@/types/scam-reports";
 
 export async function POST(req: NextRequest) {
   let userPayload;
@@ -27,12 +28,12 @@ export async function POST(req: NextRequest) {
     }
 
     const reportId = uuidv4();
-    const userId = userPayload.userId;
+    const userId = userPayload.userId as string;
     const createdAt = new Date().toISOString();
     const updatedAt = createdAt;
     const viewable = "REPORTS";
 
-    const newReport = {
+    const newReport: ScamReport = {
       reportId,
       userId,
       title: body.title,

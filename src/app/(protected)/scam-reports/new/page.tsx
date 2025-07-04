@@ -59,7 +59,7 @@ export default function NewScamReportPage() {
           <Input
             {...register("title")}
             placeholder="Give your post a compelling title"
-            className={`w-full bg-white border-gray-300 focus:border-[var(--c-violet)] focus:ring-2 focus:ring-[var(--c-violet)] ${
+            className={`w-full bg-white border-gray-300 focus-visible:border-[var(--c-violet)] focus-visible:ring-2 focus-visible:ring-[var(--c-violet)] ${
               errors.title ? "border-red-500" : ""
             }`}
             disabled={isSubmitting}
@@ -75,7 +75,7 @@ export default function NewScamReportPage() {
           <Textarea
             {...register("description")}
             placeholder="Share your experience in detail here"
-            className={`w-full bg-white border-gray-300 focus:border-[var(--c-violet)] focus:ring-2 focus:ring-[var(--c-violet)] ${
+            className={`w-full bg-white border-gray-300 focus-visible:border-[var(--c-violet)] focus-visible:ring-2 focus-visible:ring-[var(--c-violet)] ${
               errors.description ? "border-red-500" : ""
             }`}
             rows={5}
@@ -123,7 +123,7 @@ export default function NewScamReportPage() {
         <div className="flex justify-end mt-8">
           <Button
             type="submit"
-            className="bg-[var(--c-violet)] text-white px-10 py-3 text-lg font-sans-bold rounded-lg hover:bg-[var(--c-violet)]/90"
+            className="bg-[var(--c-violet)] text-white px-10 py-3 text-lg rounded-lg hover:bg-[var(--c-violet)]/90 font-mono-bold"
             disabled={isSubmitting}
           >
             Post

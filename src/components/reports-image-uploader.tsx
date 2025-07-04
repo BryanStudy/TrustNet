@@ -191,7 +191,7 @@ export default function ReportsImageUploader({
         <Card
           {...getRootProps()}
           className={cn(
-            "relative border-2 border-dashed transition-colors duration-200 ease-in-out w-full h-48 cursor-pointer",
+            "relative border-2 transition-colors duration-200 ease-in-out w-full h-48 cursor-pointer",
             isDragActive
               ? "border-[var(--c-violet)] bg-[var(--c-violet)]/10"
               : "border-gray-300 hover:border-[var(--c-violet)]"
@@ -208,7 +208,7 @@ export default function ReportsImageUploader({
                   Drag images here or Click Upload
                 </p>
                 <Button
-                  className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90"
+                  className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90 font-mono"
                   type="button"
                 >
                   Upload
