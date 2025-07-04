@@ -20,16 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ARTICLE_CATEGORIES } from "@/config/articles";
+import { ARTICLE_CATEGORIES, CATEGORY_COLORS } from "@/config/articles";
 
-const categoryColors = {
-  "Email Security": "bg-red-100 text-red-800",
-  "Privacy": "bg-blue-100 text-blue-800",
-  "Authentication": "bg-green-100 text-green-800",
-  "Digital Literacy": "bg-purple-100 text-purple-800",
-  "Online Shopping": "bg-orange-100 text-orange-800",
-  "Media Literacy": "bg-indigo-100 text-indigo-800"
-};
+
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -313,7 +306,7 @@ export default function ArticleDetailsPage() {
           </div>
         ) : (
           <>
-            <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${categoryColors[article.category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800'}`}>
+            <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${CATEGORY_COLORS[article.category as keyof typeof CATEGORY_COLORS] || 'bg-gray-100 text-gray-800'}`}>
               <Tag className="w-4 h-4 mr-1 inline" /> {article.category}
             </Badge>
             <span className="font-mono text-xs text-gray-500 flex items-center gap-1">

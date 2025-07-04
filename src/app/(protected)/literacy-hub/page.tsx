@@ -8,15 +8,9 @@ import { useArticles } from "@/hooks/useArticles";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { useRouter } from "next/navigation";
 import { Eye, TrendingUp } from "lucide-react";
+import { CATEGORY_COLORS } from "@/config/articles";
 
-const categoryColors = {
-  "Email Security": "bg-red-100 text-red-800",
-  "Privacy": "bg-blue-100 text-blue-800",
-  "Authentication": "bg-green-100 text-green-800",
-  "Digital Literacy": "bg-purple-100 text-purple-800",
-  "Online Shopping": "bg-orange-100 text-orange-800",
-  "Media Literacy": "bg-indigo-100 text-indigo-800"
-};
+
 
 export default function LiteracyHubPage() {
   const { articles, loading, isError, error } = useArticles();
@@ -122,7 +116,7 @@ export default function LiteracyHubPage() {
 
                   {/* Footer */}
                   <div className="flex items-center justify-between">
-                    <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${categoryColors[article.category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800'}`}>
+                    <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${CATEGORY_COLORS[article.category as keyof typeof CATEGORY_COLORS] || 'bg-gray-100 text-gray-800'}`}>
                       {article.category}
                     </Badge>
                     <span className="font-mono text-xs text-gray-500">
@@ -224,7 +218,7 @@ export default function LiteracyHubPage() {
 
                     {/* Footer */}
                     <div className="flex items-center justify-between">
-                      <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${categoryColors[article.category as keyof typeof categoryColors] || 'bg-gray-100 text-gray-800'}`}>
+                      <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${CATEGORY_COLORS[article.category as keyof typeof CATEGORY_COLORS] || 'bg-gray-100 text-gray-800'}`}>
                         {article.category}
                       </Badge>
                       <span className="font-mono text-xs text-gray-500">
