@@ -73,8 +73,8 @@ function ScamReportsSearchBar({
 // Card for a single scam report
 function ScamReportCard({ report }: { report: ScamReportWithUserDetail }) {
   return (
-    <Card className="flex flex-col h-full max-w-full justify-center">
-      <div className="flex flex-row items-center justify-between px-4">
+    <Card className="flex flex-col h-full max-w-full justify-center py-2">
+      <div className="flex flex-row items-center justify-between px-4 py-4">
         <div className="w-full flex-2/3 border-r-2 border-[var(--c-gray)]/20">
           <div className="flex flex-col">
             <CardHeader className="flex flex-row items-center gap-3 px-4 pt-2 pb-0">
@@ -118,7 +118,7 @@ function ScamReportCard({ report }: { report: ScamReportWithUserDetail }) {
               src={report.image}
               alt="Report Image"
               className="w-full h-full object-cover rounded-lg"
-              style={{ maxHeight: 120 }}
+              style={{ maxHeight: 160 }}
             />
           )}
         </div>
