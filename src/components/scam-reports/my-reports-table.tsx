@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ScamReport } from "@/types/scam-reports";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface MyReportsTableProps {
   reports: ScamReport[];
@@ -23,6 +24,7 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
   isLoading,
   isError,
 }) => {
+  const router = useRouter();
   // Truncate description helper
   const truncate = (str: string, n: number) =>
     str.length > n ? str.slice(0, n - 1) + "…" : str;
@@ -39,10 +41,10 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
               Description
             </TableHead>
             <TableHead className="font-mono-bold text-center text-[1.0rem]">
-              Created At
+              Anonymous
             </TableHead>
             <TableHead className="font-mono-bold text-center text-[1.0rem]">
-              Updated At
+              Created At
             </TableHead>
             <TableHead className="font-mono-bold text-center text-[1.0rem]">
               Edit
@@ -92,14 +94,10 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
                   {truncate(report.description, 80)}
                 </TableCell>
                 <TableCell className="text-center">
-                  {new Date(report.createdAt).toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
+                  {report.anonymized ? "Yes" : "No"}
                 </TableCell>
                 <TableCell className="text-center">
-                  {new Date(report.updatedAt).toLocaleDateString("en-GB", {
+                  {new Date(report.createdAt).toLocaleDateString("en-GB", {
                     day: "2-digit",
                     month: "long",
                     year: "numeric",
@@ -108,7 +106,14 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
                 <TableCell
                   className="text-center"
                   data-action="edit"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(
+                      `/scam-reports/edit/${
+                        report.reportId
+                      }?createdAt=${encodeURIComponent(report.createdAt)}`
+                    );
+                  }}
                 >
                   <Button
                     variant="secondary"

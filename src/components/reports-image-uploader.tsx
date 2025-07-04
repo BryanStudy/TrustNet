@@ -25,14 +25,44 @@ interface ReportsImageUploaderProps {
   folderPath?: string;
   sizeLimit?: number;
   onUploadComplete?: (fileName: string) => void;
+  initialImageUrl?: string;
+  initialFileName?: string;
 }
 
 export default function ReportsImageUploader({
   folderPath = "scam-reports",
   sizeLimit = 1024 * 1024 * 5,
   onUploadComplete,
+  initialImageUrl,
+  initialFileName,
 }: ReportsImageUploaderProps) {
   const [file, setFile] = useState<UploadFile | null>(null);
+  const [showInitial, setShowInitial] = useState(
+    !!initialImageUrl && !!initialFileName
+  );
+
+  async function removeInitialFile() {
+    if (!initialFileName) return;
+    try {
+      const deleteFileResponse = await fetch("/api/s3", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          key: initialFileName,
+          folderPath: folderPath,
+        }),
+      });
+      if (!deleteFileResponse.ok) {
+        toast.error("Failed to delete file");
+        return;
+      }
+      toast.success("Image removed");
+      setShowInitial(false);
+      if (onUploadComplete) onUploadComplete("");
+    } catch (error) {
+      toast.error("Failed to delete file");
+    }
+  }
 
   async function removeFile() {
     if (!file) return;
@@ -187,7 +217,27 @@ export default function ReportsImageUploader({
 
   return (
     <div className="space-y-4">
-      {!file ? (
+      {showInitial && initialImageUrl && initialFileName ? (
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
+              <img
+                src={initialImageUrl}
+                alt="Report image"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              onClick={removeInitialFile}
+            >
+              Remove
+            </Button>
+          </div>
+        </div>
+      ) : !file ? (
         <Card
           {...getRootProps()}
           className={cn(
