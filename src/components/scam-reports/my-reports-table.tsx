@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   TableHeader,
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { ScamReport } from "@/types/scam-reports";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "@/utils/axios";
 
 interface MyReportsTableProps {
   reports: ScamReport[];
@@ -25,9 +27,34 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
   isError,
 }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   // Truncate description helper
   const truncate = (str: string, n: number) =>
     str.length > n ? str.slice(0, n - 1) + "…" : str;
+
+  async function handleDelete(report: ScamReport) {
+    setDeletingId(report.reportId);
+    try {
+      const res = await axios.delete(
+        `/api/scam-reports/delete-report/${report.reportId}`,
+        {
+          data: { createdAt: report.createdAt, image: report.image },
+          headers: { "content-type": "application/json" },
+        }
+      );
+      if (res.status === 200) {
+        toast.success("Report deleted successfully");
+        queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });
+      } else {
+        toast.error(res.data?.error || "Failed to delete report");
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to delete report");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className="w-full">
@@ -127,13 +154,17 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
                 <TableCell
                   className="text-center"
                   data-action="delete"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(report);
+                  }}
                 >
                   <Button
                     variant="destructive"
                     size="icon"
                     aria-label="Delete"
                     className="bg-[var(--c-violet)]"
+                    disabled={deletingId === report.reportId}
                   >
                     <FaTrash />
                   </Button>

@@ -92,7 +92,7 @@ export default function NewScamReportPage() {
         </div>
         <div>
           <label className="block text-lg font-sans-bold mb-2">
-            Screenshots / Images
+            Screenshot / Image
           </label>
           <ReportsImageUploader
             onUploadComplete={(fileName) => {

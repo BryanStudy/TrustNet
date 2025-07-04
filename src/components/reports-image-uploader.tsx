@@ -232,8 +232,9 @@ export default function ReportsImageUploader({
               size="sm"
               type="button"
               onClick={removeInitialFile}
+              className="absolute top-2 right-2"
             >
-              Remove
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
