@@ -230,10 +230,7 @@ export default function ProfilePictureUploader({
                 <p className="text-sm text-gray-600 text-center">
                   Drop your profile picture here, or click to select
                 </p>
-                <Button
-                  className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90"
-                  type="button"
-                >
+                <Button className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90 cursor-pointer" type="button">
                   Choose Picture
                 </Button>
               </div>

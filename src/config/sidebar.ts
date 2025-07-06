@@ -42,15 +42,15 @@ export const customerSidebar: SidebarItem[] = [
 ];
 
 // Admin Sidebar
-export const adminHome = "/digital-threats"; // you can change this to dashboard if you're making a dashboard for admin
+export const adminHome = "/home"; // you can change this to dashboard if you're making a dashboard for admin
 export const adminSidebar: SidebarItem[] = [
   {
     label: "Digital Threats",
     icon: AiOutlineScan,
     children: [
       { label: "Directory", href: "/digital-threats" },
-      { label: "My Threats", href: "/digital-threats#" },
-      { label: "Liked Threats", href: "/digital-threats#" },
+      { label: "My Threats", href: "/digital-threats/my-threats" },
+      { label: "Liked Threats", href: "/digital-threats/liked-threats" },
     ],
   },
   {
@@ -58,16 +58,24 @@ export const adminSidebar: SidebarItem[] = [
     icon: TbReportSearch,
     children: [
       { label: "Forum", href: "/scam-reports" },
-      { label: "My Reports", href: "/scams-reports#" },
+      { label: "My Reports", href: "/scams-reports/my-reports" },
     ],
   },
   {
     label: "Literacy Hub",
     icon: HiOutlineBookOpen,
     href: "/literacy",
-    children: [
-      { label: "Articles Directory", href: "/literacy-hub" },
-      { label: "My Articles", href: "/literacy-hub#" },
-    ],
+    children: [{ label: "Articles Directory", href: "/literacy-hub" }, 
+              { label: "My Articles", href: "/literacy-hub/my-articles" }
+            ],
   },
+  {
+    label: "Manage Users",
+    icon: HiOutlineBookOpen,
+    href: "/users",
+    children: [
+      { label: "All Users", href: "/users" },
+      { label: "Add User", href: "/users/create" },
+    ],
+  }
 ];

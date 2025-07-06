@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import ddbDocClient from '@/utils/dynamodb';
 import { SignJWT } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import { verifyAuth } from "@/utils/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -95,5 +96,45 @@ export async function POST(req: NextRequest) {
     const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
     console.error('Error in signup endpoint:', err);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  try {
+    // Check if user is authenticated and is admin
+    const payload = await verifyAuth(req);
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Only admins can list all users
+    if (payload.role !== "admin") {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    // Get all users with scan
+    const command = new ScanCommand({
+      TableName: "users",
+      ProjectionExpression: "userId, firstName, lastName, email, #r, picture, createdAt, updatedAt",
+      ExpressionAttributeNames: {
+        "#r": "role"
+      }
+    });
+
+    const { Items: users = [] } = await ddbDocClient.send(command);
+
+    return NextResponse.json({ users });
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch users" },
+      { status: 500 }
+    );
   }
 } 

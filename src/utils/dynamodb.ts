@@ -6,7 +6,7 @@ const ACCESSKEYID = process.env.AWS_ACCESS_KEY_ID;
 const SECRETACCESSKEY = process.env.AWS_SECRET_ACCESS_KEY;
 const SESSIONTOKEN = process.env.AWS_SESSION_TOKEN;
 
-if (!REGION || !ACCESSKEYID || !SECRETACCESSKEY || !SESSIONTOKEN) {
+if (!REGION || !ACCESSKEYID || !SECRETACCESSKEY) {
   throw new Error("AWS credentials are not set for DynamoDB");
 }
 

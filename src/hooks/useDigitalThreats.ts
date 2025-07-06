@@ -1,5 +1,5 @@
 import axios from "@/utils/axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DigitalThreat } from "@/types/digital-threats";
 
 export function useDigitalThreats() {
@@ -74,4 +74,33 @@ export function useDigitalThreat(threatId: string, createdAt: string) {
     isError,
     error,
   };
+}
+
+export function useUpdateThreatStatus() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      threatId, 
+      createdAt, 
+      status 
+    }: { 
+      threatId: string; 
+      createdAt: string; 
+      status: "verified" | "unverified" 
+    }) => {
+      const response = await axios.patch(`/api/digital-threats/update-status/${threatId}`, {
+        createdAt,
+        status,
+      });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
+      queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["digital-threat", variables.threatId, variables.createdAt] 
+      });
+    },
+  });
 }
