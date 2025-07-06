@@ -49,6 +49,7 @@ export const adminSidebar: SidebarItem[] = [
     icon: AiOutlineScan,
     children: [
       { label: "Directory", href: "/digital-threats" },
+      { label: "My Threats", href: "/digital-threats/my-threats" },
       { label: "Liked Threats", href: "/digital-threats/liked-threats" },
     ],
   },
@@ -74,7 +75,7 @@ export const adminSidebar: SidebarItem[] = [
     href: "/users",
     children: [
       { label: "All Users", href: "/users" },
-      { label: "Add User", href: "/users/add" },
+      { label: "Add User", href: "/users/create" },
     ],
   }
 ];

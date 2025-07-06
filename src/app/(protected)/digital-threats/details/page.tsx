@@ -2,8 +2,9 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { useDigitalThreat } from "@/hooks/useDigitalThreats";
+import { useDigitalThreat, useUpdateThreatStatus } from "@/hooks/useDigitalThreats";
 import { useThreatLike } from "@/hooks/useThreatLike";
+import { useUser } from "@/hooks/useUser";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FaLink, FaRegHeart, FaHeart, FaHashtag } from "react-icons/fa";
@@ -92,6 +93,9 @@ export default function DigitalThreatDetailsPage() {
   const threatId = searchParams.get("threatId");
   const createdAt = searchParams.get("createdAt");
 
+  const { userInfo: currentUser } = useUser();
+  const isAdmin = currentUser?.role === "admin";
+
   const {
     digitalThreat: threat,
     reporterName,
@@ -111,11 +115,32 @@ export default function DigitalThreatDetailsPage() {
       refetchThreat: refetch,
     });
 
+  // Status update mutation
+  const { mutateAsync: updateStatus, isPending: statusUpdating } = useUpdateThreatStatus();
+
   React.useEffect(() => {
     if (likeError) {
       toast.error("Failed to update like status. Please try again.");
     }
   }, [likeError]);
+
+  const handleStatusToggle = async () => {
+    if (!threat || !threatId || !createdAt) return;
+    
+    const newStatus = threat.status === "verified" ? "unverified" : "verified";
+    
+    try {
+      await updateStatus({
+        threatId,
+        createdAt: decodeURIComponent(createdAt),
+        status: newStatus,
+      });
+      toast.success(`Threat marked as ${newStatus}`);
+      refetch(); // Refresh the threat data
+    } catch (error: any) {
+      toast.error(error?.response?.data?.error || "Failed to update status");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -145,21 +170,46 @@ export default function DigitalThreatDetailsPage() {
     <div className="min-h-screen max-w-7xl mx-auto mt-10">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-sans-bold mb-8">Digital Threat Details</h1>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="rounded-full border border-[var(--c-violet)] text-[var(--c-violet)] hover:bg-[var(--c-violet)]/10"
-          onClick={liked ? handleUnlike : handleLike}
-          disabled={likeLoading}
-        >
-          {likeLoading ? (
-            <FaSpinner className="animate-spin text-2xl" />
-          ) : liked ? (
-            <FaHeart className="text-2xl" />
-          ) : (
-            <FaRegHeart className="text-2xl" />
+        <div className="flex items-center gap-3">
+          {/* Admin-only verification toggle */}
+          {isAdmin && (
+            <Button
+              variant={threat?.status === "verified" ? "default" : "outline"}
+              size="sm"
+              className={`flex items-center gap-2 cursor-pointer ${
+                threat?.status === "verified"
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "border-green-600 text-green-600 hover:bg-green-50"
+              }`}
+              onClick={handleStatusToggle}
+              disabled={statusUpdating}
+            >
+              {statusUpdating ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <MdOutlineVerified />
+              )}
+              {threat?.status === "verified" ? "Verified" : "Mark as Verified"}
+            </Button>
           )}
-        </Button>
+          
+          {/* Like button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full border border-[var(--c-violet)] text-[var(--c-violet)] hover:bg-[var(--c-violet)]/10"
+            onClick={liked ? handleUnlike : handleLike}
+            disabled={likeLoading}
+          >
+            {likeLoading ? (
+              <FaSpinner className="animate-spin text-2xl" />
+            ) : liked ? (
+              <FaHeart className="text-2xl" />
+            ) : (
+              <FaRegHeart className="text-2xl" />
+            )}
+          </Button>
+        </div>
       </div>
       <div className="mb-10">
         <div className="text-xl font-mono-bold text-gray-400 mb-4">Summary</div>
