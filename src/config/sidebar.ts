@@ -58,7 +58,7 @@ export const adminSidebar: SidebarItem[] = [
     icon: TbReportSearch,
     children: [
       { label: "Forum", href: "/scam-reports" },
-      { label: "My Reports", href: "/scams-reports/my-reports" },
+      // { label: "My Reports", href: "/scam-reports/my-reports" },
     ],
   },
   {

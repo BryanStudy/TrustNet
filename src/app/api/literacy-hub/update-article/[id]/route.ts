@@ -3,9 +3,12 @@ import { UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "@/utils/dynamodb";
 import { updateArticleSchema } from "@/schema/articles";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const { id } = params;
+    const { id } = await context.params;
     const body = await req.json();
 
     // Validate input using the update schema

@@ -3,6 +3,7 @@ import { UpdateCommand, GetCommand, DeleteCommand, ScanCommand, BatchWriteComman
 import ddbDocClient from '@/utils/dynamodb';
 import { verifyAuth } from '@/utils/auth';
 import { z } from 'zod';
+import { deleteFile } from '@/services/s3Service';
 
 // User update validation schema
 const updateUserSchema = z.object({
@@ -18,7 +19,8 @@ const updateUserSchema = z.object({
 /**
  * Handles fetching a single user by ID.
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest,  context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
     // Check if user is authenticated and is admin
     const payload = await verifyAuth(req);
@@ -30,7 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     // Only admins can view user details (or users viewing their own profile)
-    if (payload.role !== "admin" && payload.userId !== params.id) {
+    if (payload.role !== "admin" && payload.userId !== id) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
@@ -39,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const command = new GetCommand({
       TableName: 'users',
-      Key: { userId: params.id },
+      Key: { userId: id },
     });
 
     const { Item: user } = await ddbDocClient.send(command);
@@ -61,7 +63,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * Handles updating user information in DynamoDB.
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
     // Authenticate user
     const payload = await verifyAuth(req);
@@ -70,14 +73,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     // Only admins can update any user, or users can update their own profile
-    if (payload.role !== "admin" && payload.userId !== params.id) {
+    if (payload.role !== "admin" && payload.userId !== id) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }
       );
     }
 
-    const userId = params.id;
+    const userId = id;
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required in params' }, { status: 400 });
     }
@@ -160,7 +163,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * Handles deleting a user and all associated records.
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
   try {
     // Authenticate user
     const payload = await verifyAuth(req);
@@ -176,7 +180,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       );
     }
 
-    const userId = params.id;
+    const userId = id;
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required in params' }, { status: 400 });
     }
@@ -195,14 +199,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     // Delete user's profile picture from S3 if it exists
     if (user.picture) {
       try {
-        await fetch("/api/s3", {
-          method: "DELETE",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            key: user.picture,
-            folderPath: "profile-pictures",
-          }),
-        });
+        await deleteFile(user.picture, "profile-pictures");
       } catch (err) {
         console.error("Failed to delete profile picture:", err);
         // Continue with deletion even if S3 cleanup fails
@@ -272,14 +269,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     for (const article of articles) {
       if (article.coverImage) {
         try {
-          await fetch("/api/s3", {
-            method: "DELETE",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              key: article.coverImage,
-              folderPath: "article-images",
-            }),
-          });
+          await deleteFile(article.coverImage, "article-images");
         } catch (err) {
           console.error("Failed to delete article image:", err);
         }
@@ -297,14 +287,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     for (const report of reports) {
       if (report.image) {
         try {
-          await fetch("/api/s3", {
-            method: "DELETE",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              key: report.image,
-              folderPath: "scam-reports", // Assuming this folder path
-            }),
-          });
+          await deleteFile(report.image, "scam-reports");
         } catch (err) {
           console.error("Failed to delete report image:", err);
         }
