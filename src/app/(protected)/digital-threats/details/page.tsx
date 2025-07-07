@@ -2,7 +2,10 @@
 
 import React from "react";
 import { useSearchParams } from "next/navigation";
-import { useDigitalThreat, useUpdateThreatStatus } from "@/hooks/useDigitalThreats";
+import {
+  useDigitalThreat,
+  useUpdateThreatStatus,
+} from "@/hooks/useDigitalThreats";
 import { useThreatLike } from "@/hooks/useThreatLike";
 import { useUser } from "@/hooks/useUser";
 import { Card } from "@/components/ui/card";
@@ -116,7 +119,8 @@ export default function DigitalThreatDetailsPage() {
     });
 
   // Status update mutation
-  const { mutateAsync: updateStatus, isPending: statusUpdating } = useUpdateThreatStatus();
+  const { mutateAsync: updateStatus, isPending: statusUpdating } =
+    useUpdateThreatStatus();
 
   React.useEffect(() => {
     if (likeError) {
@@ -126,9 +130,9 @@ export default function DigitalThreatDetailsPage() {
 
   const handleStatusToggle = async () => {
     if (!threat || !threatId || !createdAt) return;
-    
+
     const newStatus = threat.status === "verified" ? "unverified" : "verified";
-    
+
     try {
       await updateStatus({
         threatId,
@@ -192,13 +196,20 @@ export default function DigitalThreatDetailsPage() {
               {threat?.status === "verified" ? "Verified" : "Mark as Verified"}
             </Button>
           )}
-          
+
           {/* Like button */}
           <Button
             variant="ghost"
             size="icon"
             className="rounded-full border border-[var(--c-violet)] text-[var(--c-violet)] hover:bg-[var(--c-violet)]/10"
-            onClick={liked ? handleUnlike : handleLike}
+            onClick={
+              liked
+                ? handleUnlike
+                : () => {
+                    handleLike();
+                    toast.success("You liked this threat!");
+                  }
+            }
             disabled={likeLoading}
           >
             {likeLoading ? (
