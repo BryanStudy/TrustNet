@@ -1,7 +1,303 @@
-import React from 'react'
+"use client";
+
+import React, { useState, useCallback } from "react";
+import {
+  useScamReportsWithUserDetail,
+  useSearchedScamReports,
+} from "@/hooks/useScamReports";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
+import { Spinner } from "@/components/spinner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ScamReportWithUserDetail } from "@/types/scam-reports";
+import { FaUser } from "react-icons/fa";
+import { IoSearchOutline } from "react-icons/io5";
+
+// Search bar component
+function ScamReportsSearchBar({
+  search,
+  setSearch,
+  onSearch,
+  loading,
+}: {
+  search: string;
+  setSearch: (s: string) => void;
+  onSearch: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="flex gap-4 items-center w-full mt-8">
+      <div className="relative flex-1">
+        <IoSearchOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-gray-500 pointer-events-none" />
+        <Input
+          className={
+            "pl-12 pr-4 py-6 rounded-md border border-[var(--c-mauve)] text-base bg-[var(--c-white)] w-full placeholder:text-gray-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--c-violet)]"
+          }
+          placeholder="Search by Title"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch();
+          }}
+          disabled={loading}
+        />
+      </div>
+      <Button
+        onClick={onSearch}
+        className="px-8 py-6 text-sm font-sans-bold bg-[var(--c-violet)] text-white rounded-md hover:bg-[var(--c-violet)]/80 transition-colors"
+        style={{ minWidth: 120 }}
+        disabled={loading}
+      >
+        Search
+      </Button>
+    </div>
+  );
+}
+
+// Card for a single scam report
+function ScamReportCard({ report }: { report: ScamReportWithUserDetail }) {
+  const handleCardClick = () => {
+    window.location.href = `/scam-reports/details?reportId=${encodeURIComponent(
+      report.reportId
+    )}&createdAt=${encodeURIComponent(report.createdAt)}`;
+  };
+
+  return (
+    <Card
+      className="flex flex-col h-full max-w-full justify-center py-2 cursor-pointer hover:outline-2 hover:outline-[var(--c-violet)] hover:outline-offset-2"
+      onClick={handleCardClick}
+    >
+      <div className="flex flex-row items-center justify-between px-4 py-4">
+        <div className="w-full flex-2/3 border-r-2 border-[var(--c-gray)]/20">
+          <div className="flex flex-col">
+            <CardHeader className="flex flex-row items-center gap-3 px-4 pt-2 pb-0">
+              {report.reporterPicture && !report.anonymized && (
+                <Avatar className="size-6">
+                  <AvatarImage
+                    src={report.reporterPicture}
+                    alt={report.reporterName}
+                  />
+                </Avatar>
+              )}
+              {report.anonymized && (
+                <FaUser className="text-[var(--c-violet)]" />
+              )}
+              <div className="flex flex-col flex-1">
+                <span className="font-sans text-sm truncate">
+                  {report.anonymized ? "Anonymous User" : report.reporterName}
+                </span>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {new Date(report.createdAt).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2 px-4 mt-4 pb-4 flex-1">
+              <CardTitle className="text-lg font-sans-bold line-clamp-1">
+                {report.title}
+              </CardTitle>
+              <CardDescription className="line-clamp-2 text-xs">
+                {report.description}
+              </CardDescription>
+            </CardContent>
+          </div>
+        </div>
+        <div className="w-full flex-1/3 px-4">
+          {report.image && (
+            <img
+              src={report.image}
+              alt="Report Image"
+              className="w-full h-full object-cover rounded-lg"
+              style={{ maxHeight: 160 }}
+            />
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// Grid of scam report cards
+function ScamReportGrid({ reports }: { reports: ScamReportWithUserDetail[] }) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 mt-8">
+      {reports.map((report) => (
+        <ScamReportCard
+          key={report.reportId + report.createdAt}
+          report={report}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Pagination controls
+function ScamReportsPagination({
+  hasPrev,
+  hasNext,
+  onPrev,
+  onNext,
+  currentPage,
+}: {
+  hasPrev: boolean;
+  hasNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  currentPage: number;
+}) {
+  return (
+    <Pagination className="mt-10 mb-4">
+      <PaginationContent>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem className="cursor-pointer">
+            <PaginationPrevious
+              onClick={hasPrev ? onPrev : undefined}
+              aria-disabled={!hasPrev}
+              className={
+                hasPrev
+                  ? "hover:bg-[var(--c-violet)] hover:text-white"
+                  : "hidden"
+              }
+            />
+          </PaginationItem>
+        </div>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem>
+            <span className="px-4 py-2 font-sans text-md text-black">
+              Page {currentPage}
+            </span>
+          </PaginationItem>
+        </div>
+        <div className="flex justify-center items-center min-w-30">
+          <PaginationItem className="cursor-pointer">
+            <PaginationNext
+              onClick={hasNext ? onNext : undefined}
+              aria-disabled={!hasNext}
+              className={
+                hasNext
+                  ? "hover:bg-[var(--c-violet)] hover:text-white"
+                  : "hidden"
+              }
+            />
+          </PaginationItem>
+        </div>
+      </PaginationContent>
+    </Pagination>
+  );
+}
 
 export default function ScamReportsPage() {
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  // Cursor stack for backward navigation
+  const [cursorStack, setCursorStack] = useState<any[]>([undefined]); // Start with undefined for page 1
+  const [page, setPage] = useState(1);
+  const lastEvaluatedKey = cursorStack[cursorStack.length - 1];
+
+  // Determine mode
+  const isSearching = search.trim() !== "";
+
+  // Data hooks
+  const {
+    reports,
+    lastEvaluatedKey: nextKey,
+    loading,
+    isError,
+    error,
+  } = isSearching
+    ? useSearchedScamReports(search, 6, lastEvaluatedKey)
+    : useScamReportsWithUserDetail(6, lastEvaluatedKey);
+
+  // Handlers
+  const handleSearch = useCallback(() => {
+    setCursorStack([undefined]);
+    setPage(1);
+    setSearch(searchInput.trim());
+  }, [searchInput]);
+
+  const handleInputChange = (val: string) => {
+    setSearchInput(val);
+    if (val.trim() === "") {
+      setSearch("");
+      setCursorStack([undefined]);
+      setPage(1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      const newStack = [...cursorStack];
+      newStack.pop(); // Remove current page's cursor
+      setCursorStack(newStack);
+      setPage(page - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (nextKey) {
+      setCursorStack([...cursorStack, nextKey]);
+      setPage(page + 1);
+    }
+  };
+
+  // UI
   return (
-    <div>ScamReportsPage</div>
-  )
+    <div className="max-w-7xl mx-auto px-4 flex flex-col min-h-screen">
+      <h1 className="text-4xl font-sans-bold mt-10">Scam Reports Forum</h1>
+      <ScamReportsSearchBar
+        search={searchInput}
+        setSearch={handleInputChange}
+        onSearch={handleSearch}
+        loading={loading}
+      />
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner size="large" color="violet" />
+        </div>
+      ) : isError ? (
+        <Alert variant="destructive" className="mt-10">
+          <AlertDescription>
+            {error?.message || "Failed to load scam reports."}
+          </AlertDescription>
+        </Alert>
+      ) : reports.length === 0 ? (
+        <div className="flex justify-center items-center h-64 text-xl text-muted-foreground">
+          No scam reports found.
+        </div>
+      ) : (
+        <div className="flex flex-col flex-1">
+          <ScamReportGrid reports={reports} />
+          {reports.length > 0 && (
+            <div className="mt-auto">
+              <ScamReportsPagination
+                hasPrev={page > 1}
+                hasNext={!!nextKey}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                currentPage={page}
+              />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

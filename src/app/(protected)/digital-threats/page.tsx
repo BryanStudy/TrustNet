@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { FaLink, FaPhoneAlt } from "react-icons/fa";
 import { IoMail } from "react-icons/io5";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const typeIconMap = {
   url: <FaLink className="text-[var(--c-violet)]" size={32} />,
@@ -106,17 +113,18 @@ export default function DigitalThreatsDirectoryPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="font-mono text-md text-gray-500">Sort by:</span>
-          <select
-            className="font-mono border border-[var(--c-mauve)] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--c-violet)] bg-white"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            {sortOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[150px] border-[var(--c-mauve)] rounded-md font-mono text-base bg-[var(--c-white)] py-2 px-3">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent className="font-mono text-base">
+              {sortOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pb-8">
