@@ -390,9 +390,11 @@ export default function UserDetailsPage() {
             <Button onClick={handleEdit} className="bg-[var(--c-violet)] hover:bg-[var(--c-violet)]/80 text-white flex items-center gap-1 cursor-pointer">
               <Pencil className="w-4 h-4" /> Edit
             </Button>
-            <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1 cursor-pointer hover:bg-red-500 hover:text-white">
-              <Trash2 className="w-4 h-4" /> Delete
-            </Button>
+            {!isOwnProfile && (
+              <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1 cursor-pointer hover:bg-red-500 hover:text-white">
+                <Trash2 className="w-4 h-4" /> Delete
+              </Button>
+            )}
           </>
         )}
       </div>

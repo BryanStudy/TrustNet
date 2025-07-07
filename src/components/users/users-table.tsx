@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { UserDeleteDialog } from "./user-delete-dialog";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { cn } from "@/lib/utils";
-import { useDeleteUser } from "@/hooks/useUser";
+import { useDeleteUser, useUser } from "@/hooks/useUser";
 import { toast } from "sonner";
 
 interface User {
@@ -37,6 +37,7 @@ interface UsersTableProps {
 
 export function UsersTable({ users, isLoading, isError, onRefetch }: UsersTableProps) {
   const router = useRouter();
+  const { userInfo: currentUser } = useUser(); // Get current logged-in user
   const { mutateAsync: deleteUser, isPending: deleting } = useDeleteUser();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -116,6 +117,7 @@ export function UsersTable({ users, isLoading, isError, onRefetch }: UsersTableP
                 month: "long",
                 year: "numeric",
               });
+              const isCurrentUser = currentUser?.userId === user.userId;
 
               return (
                 <TableRow
@@ -164,16 +166,18 @@ export function UsersTable({ users, isLoading, isError, onRefetch }: UsersTableP
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        aria-label="Delete"
-                        className="cursor-pointer bg-red-500 hover:text-white"
-                        onClick={() => handleDelete(user)}
-                        disabled={deleting}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {!isCurrentUser && (
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          aria-label="Delete"
+                          className="cursor-pointer bg-red-500 hover:text-white"
+                          onClick={() => handleDelete(user)}
+                          disabled={deleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
