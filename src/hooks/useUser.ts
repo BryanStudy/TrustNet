@@ -103,9 +103,15 @@ export function useUserById(userId: string | undefined) {
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ userId, data }: { userId: string; data: Partial<UserInfo> }) => {
+    mutationFn: async ({
+      userId,
+      data,
+    }: {
+      userId: string;
+      data: Partial<UserInfo>;
+    }) => {
       const response = await axios.patch(`/api/users/${userId}`, data);
       return response.data.user;
     },
@@ -120,16 +126,15 @@ export function useUpdateUser() {
 
 export function useDeleteUser() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (userId: string) => {
       const response = await axios.delete(`/api/users/${userId}`);
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate all user-related queries
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      // Invalidate all cache (including threats, scam reports, literacy hub, etc)
+      queryClient.invalidateQueries();
     },
   });
 }
@@ -139,15 +144,15 @@ export function isValidEmail(email: string): boolean {
 }
 
 export const passwordRequirements = [
-  { regex: /.{8,}/, text: 'At least 8 characters' },
-  { regex: /[0-9]/, text: 'Contains at least 1 number' },
-  { regex: /[a-z]/, text: 'Contains at least 1 lowercase letter' },
-  { regex: /[A-Z]/, text: 'Contains at least 1 uppercase letter' },
-  { regex: /[^A-Za-z0-9]/, text: 'Contains at least 1 special character' },
+  { regex: /.{8,}/, text: "At least 8 characters" },
+  { regex: /[0-9]/, text: "Contains at least 1 number" },
+  { regex: /[a-z]/, text: "Contains at least 1 lowercase letter" },
+  { regex: /[A-Z]/, text: "Contains at least 1 uppercase letter" },
+  { regex: /[^A-Za-z0-9]/, text: "Contains at least 1 special character" },
 ];
 
 export function validatePassword(password: string): boolean {
-  return passwordRequirements.every(req => req.regex.test(password));
+  return passwordRequirements.every((req) => req.regex.test(password));
 }
 
 // Reusable image upload hook
