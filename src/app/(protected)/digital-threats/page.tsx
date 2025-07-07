@@ -170,8 +170,8 @@ export default function DigitalThreatsDirectoryPage() {
                     }
                     className={`font-mono ${
                       threat.status === "verified"
-                        ? "bg-[var(--c-green)] text-white"
-                        : "bg-[var(--c-mauve)] text-[var(--c-violet)]"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
                     {threat.status === "verified" ? "Verified" : "Unverified"}
