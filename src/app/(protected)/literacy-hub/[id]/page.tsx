@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useArticle } from "@/hooks/useArticles";
 import { useUpdateArticle } from "@/hooks/useArticles";
 import { useDeleteArticle } from "@/hooks/useArticles";
+import { useUser } from "@/hooks/useUser";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ export default function ArticleDetailsPage() {
   const [imageUploading, setImageUploading] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { userInfo: currentUser } = useUser();
 
   React.useEffect(() => {
     if (article) setForm(article);
@@ -346,27 +348,29 @@ export default function ArticleDetailsPage() {
       )}
 
       {/* Edit/Delete Buttons */}
-      <div className="flex gap-2 mt-6">
-        {editMode ? (
-          <>
-            <Button onClick={handleSave} className="bg-green-600 text-white flex items-center gap-1" disabled={updating || imageUploading}>
-              <Save className="w-4 h-4" /> {updating ? "Saving..." : "Save"}
-            </Button>
-            <Button onClick={handleCancel} variant="outline" className="flex items-center gap-1" disabled={updating || imageUploading}>
-              <X className="w-4 h-4" /> Cancel
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button onClick={handleEdit} className="bg-[var(--c-violet)] text-white flex items-center gap-1">
-              <Pencil className="w-4 h-4" /> Edit
-            </Button>
-            <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1" disabled={deleting}>
-              <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
-            </Button>
-          </>
-        )}
-      </div>
+      {currentUser?.role === "admin" && (
+        <div className="flex gap-2 mt-6">
+          {editMode ? (
+            <>
+              <Button onClick={handleSave} className="bg-green-600 text-white flex items-center gap-1" disabled={updating || imageUploading}>
+                <Save className="w-4 h-4" /> {updating ? "Saving..." : "Save"}
+              </Button>
+              <Button onClick={handleCancel} variant="outline" className="flex items-center gap-1" disabled={updating || imageUploading}>
+                <X className="w-4 h-4" /> Cancel
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button onClick={handleEdit} className="bg-[var(--c-violet)] text-white flex items-center gap-1">
+                <Pencil className="w-4 h-4" /> Edit
+              </Button>
+              <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1" disabled={deleting}>
+                <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
+              </Button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
