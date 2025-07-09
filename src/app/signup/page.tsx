@@ -61,7 +61,7 @@ export default function SignUpPage() {
         password,
         role: 'customer'
       });
-      router.push('/home');
+      router.push('/digital-threats');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create user in database.');
     }
