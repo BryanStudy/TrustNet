@@ -310,20 +310,23 @@ export default function UserDetailsPage() {
                 onChange={handleChange}
               />
             </div>
-            <div>
-              <label className="block text-sm font-mono-bold text-gray-700 mb-1 text-left">
-                User Role
-              </label>
-              <Select value={form.role} onValueChange={handleRoleChange}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="customer">Customer</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Only show the user role input if the current user is an admin*/}
+            {!(currentUser?.role === "customer") && (
+              <div>
+                <label className="block text-sm font-mono-bold text-gray-700 mb-1 text-left">
+                  User Role
+                </label>
+                <Select value={form.role} onValueChange={handleRoleChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="customer">Customer</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         ) : (
           <>
