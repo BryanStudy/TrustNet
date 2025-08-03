@@ -26,5 +26,7 @@ export const config = {
     "/digital-threats",
     "/digital-threats/(.*)",
     "/literacy-hub",
+    "/literacy-hub/(.*)",
+    "/users/(.*)"
   ], // TODO: Add more routes here scam reports, digital threats, literacy hub, etc.
 };
