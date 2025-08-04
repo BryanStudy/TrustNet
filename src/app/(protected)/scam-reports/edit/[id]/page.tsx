@@ -67,11 +67,7 @@ export default function EditScamReportPage({
         createdAt: report.createdAt,
       });
       setImageFileName(report.image);
-      setInitialImageUrl(
-        report.image
-          ? constructFileUrl(report.image, "scam-reports")
-          : undefined
-      );
+      setInitialImageUrl(report.image ? report.image : undefined);
     }
   }, [report, reset]);
 

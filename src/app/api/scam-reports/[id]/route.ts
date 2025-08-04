@@ -8,6 +8,7 @@ import { createScamReportSchema } from "@/schema/scam-reports";
 import { DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { verifyAuth } from "@/utils/auth";
 import axiosInstance from "@/utils/axios";
+import { constructFileUrl } from "@/services/s3Service";
 
 // Get single scam report by ID (requires createdAt in query)
 export async function GET(
@@ -37,7 +38,11 @@ export async function GET(
     if (!Item) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
-    return NextResponse.json({ report: Item as ScamReport });
+    const processedItem = {
+      ...Item,
+      image: constructFileUrl(Item.image, "scam-reports"),
+    };
+    return NextResponse.json({ report: processedItem as ScamReport });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch report" },
