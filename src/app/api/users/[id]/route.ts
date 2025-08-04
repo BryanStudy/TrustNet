@@ -255,7 +255,7 @@ export async function DELETE(
     });
     const { Items: threats = [] } = await ddbDocClient.send(threatsCommand);
 
-    // --- NEW: Collect likes for each threatId (orphan likes) ---
+    // Collect likes for each threatId (orphan likes) ---
     let orphanThreatLikes = [];
     for (const threat of threats) {
       if (!threat.threatId) continue;
