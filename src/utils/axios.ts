@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // true: use local Next.js API routes, false: use API Gateway/Lambda
-export const isLocal: boolean = true;
+export const isLocal: boolean = false;
 
 const axiosInstance = axios.create({
   baseURL: isLocal
