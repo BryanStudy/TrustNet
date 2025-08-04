@@ -4,6 +4,7 @@ import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
 import { ScamReport } from "@/types/scam-reports";
 
+// Get user's scam reports
 export async function GET(req: NextRequest) {
   let userPayload;
   try {

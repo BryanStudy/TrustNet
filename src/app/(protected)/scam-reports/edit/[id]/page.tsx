@@ -80,7 +80,7 @@ export default function EditScamReportPage({
 
   const onSubmit = async (data: FormData) => {
     try {
-      await axios.put(`/scam-reports/update-report/${id}`, data);
+      await axios.put(`/scam-reports/${id}`, data);
       toast.success("Scam report updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });
       queryClient.invalidateQueries({

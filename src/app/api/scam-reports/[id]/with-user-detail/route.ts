@@ -5,6 +5,7 @@ import { ScamReport, ScamReportWithUserDetail } from "@/types/scam-reports";
 import { UserInfo } from "@/hooks/useUser";
 import { constructFileUrl } from "@/utils/fileUtils";
 
+// Get single scam report by ID with user detail (requires createdAt in query)
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

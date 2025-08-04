@@ -46,7 +46,7 @@ export default function Uploader({
         prevFiles.map((f) => (f.id === fileId ? { ...f, isDeleting: true } : f))
       );
 
-      const deleteFileResponse = await fetch("/s3", {
+      const deleteFileResponse = await fetch("/api/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -89,7 +89,7 @@ export default function Uploader({
     );
 
     try {
-      const presignedUrlResponse = await fetch("/s3", {
+      const presignedUrlResponse = await fetch("/api/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

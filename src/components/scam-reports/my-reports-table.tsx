@@ -36,13 +36,10 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
   async function handleDelete(report: ScamReport) {
     setDeletingId(report.reportId);
     try {
-      const res = await axios.delete(
-        `/scam-reports/delete-report/${report.reportId}`,
-        {
-          data: { createdAt: report.createdAt, image: report.image },
-          headers: { "content-type": "application/json" },
-        }
-      );
+      const res = await axios.delete(`/scam-reports/${report.reportId}`, {
+        data: { createdAt: report.createdAt, image: report.image },
+        headers: { "content-type": "application/json" },
+      });
       if (res.status === 200) {
         toast.success("Report deleted successfully");
         queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });

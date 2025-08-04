@@ -251,8 +251,45 @@ const getAllScamReports = async (event) => {
   };
 };
 
-// Get single scam report by ID
+// Get basic scam report by ID (without user details)
 const getScamReportById = async (event) => {
+  await verifyAuth(event);
+
+  const reportId = event.pathParameters.id;
+  const { queryStringParameters } = event;
+  const createdAt = queryStringParameters?.createdAt;
+
+  if (!createdAt) {
+    throw new Error("createdAt is required");
+  }
+
+  // Get the specific scam report
+  const reportCommand = new GetCommand({
+    TableName: SCAM_REPORTS_TABLE,
+    Key: {
+      reportId,
+      createdAt,
+    },
+  });
+
+  const { Item } = await ddbDocClient.send(reportCommand);
+
+  if (!Item) {
+    throw new Error("Report not found");
+  }
+
+  const report = {
+    ...Item,
+    image: constructFileUrl(Item.image, "scam-reports"),
+  };
+
+  return {
+    report,
+  };
+};
+
+// Get scam report by ID with user detail
+const getScamReportByIdWithUserDetail = async (event) => {
   await verifyAuth(event);
 
   const reportId = event.pathParameters.id;
@@ -511,6 +548,11 @@ export const handler = async (event) => {
         body = await getScamReportById(event);
         break;
 
+      // Get single scam report by ID with user detail (requires createdAt in query)
+      case "GET /scam-reports/{id}/with-user-detail":
+        body = await getScamReportByIdWithUserDetail(event);
+        break;
+
       // Update scam report
       case "PUT /scam-reports/{id}":
         body = await updateScamReport(event);
@@ -534,6 +576,7 @@ export const handler = async (event) => {
       // Handle OPTIONS for CORS
       case "OPTIONS /scam-reports":
       case "OPTIONS /scam-reports/{id}":
+      case "OPTIONS /scam-reports/{id}/with-user-detail":
       case "OPTIONS /scam-reports/my-reports":
       case "OPTIONS /scam-reports/search":
         body = { message: "CORS preflight" };

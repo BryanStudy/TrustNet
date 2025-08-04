@@ -101,7 +101,7 @@ export default function ArticleCreateModal({
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/s3", {
+      const presignedUrlResponse = await fetch("/api/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

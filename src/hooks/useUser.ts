@@ -164,7 +164,7 @@ export function useImageUpload(folderPath: string) {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/s3", {
+      const presignedUrlResponse = await fetch("/api/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -200,7 +200,7 @@ export function useImageUpload(folderPath: string) {
   const removeImage = async (fileName: string): Promise<boolean> => {
     if (!fileName) return false;
     try {
-      await fetch("/s3", {
+      await fetch("/api/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

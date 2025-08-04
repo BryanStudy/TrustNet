@@ -119,7 +119,7 @@ export default function ArticleDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/s3", {
+      const presignedUrlResponse = await fetch("/api/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -170,7 +170,7 @@ export default function ArticleDetailsPage() {
   async function removeImage() {
     if (!form.coverImage) return;
     try {
-      await fetch("/s3", {
+      await fetch("/api/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -212,7 +212,7 @@ export default function ArticleDetailsPage() {
     try {
       // Delete the cover image first if it exists
       if (article.coverImage) {
-        await fetch("/s3", {
+        await fetch("/api/s3", {
           method: "DELETE",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
