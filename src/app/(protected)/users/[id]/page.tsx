@@ -118,27 +118,21 @@ export default function UserDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uuidv4() + "-" + file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath: "profile-pictures",
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uuidv4() + "-" + file.name,
+        contentType: file.type,
+        size: file.size,
+        folderPath: "profile-pictures",
       });
-      if (!presignedUrlResponse.ok) {
+      if (presignedUrlResponse.status !== 200) {
         setImageUploading(false);
         setImageError("Failed to get presigned URL");
         toast.error("Failed to get presigned URL");
         return;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
-      await fetch(presignedUrl, {
-        method: "PUT",
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
+      await axios.put(presignedUrl, file, {
         headers: { "Content-Type": file.type },
-        body: file,
       });
       setImageUploading(false);
       setForm({ ...form, picture: fileName });
@@ -169,13 +163,11 @@ export default function UserDetailsPage() {
   async function removeImage() {
     if (!form.picture) return;
     try {
-      await fetch("/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      await axios.delete("/s3", {
+        data: {
           key: form.picture,
           folderPath: "profile-pictures",
-        }),
+        },
       });
       setForm({ ...form, picture: "" });
       toast.success("Image removed successfully");

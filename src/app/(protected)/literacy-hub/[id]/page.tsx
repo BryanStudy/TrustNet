@@ -33,11 +33,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ARTICLE_CATEGORIES, CATEGORY_COLORS } from "@/config/articles";
-<<<<<<< HEAD
 import axios from "@/utils/axios";
 
-=======
->>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -124,23 +121,11 @@ export default function ArticleDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-<<<<<<< HEAD
       const presignedUrlResponse = await axios.post("/s3", {
         fileName: uuidv4() + "-" + file.name,
         contentType: file.type,
         size: file.size,
         folderPath: "article-images",
-=======
-      const presignedUrlResponse = await fetch("/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uuidv4() + "-" + file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath: "article-images",
-        }),
->>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
       });
       if (presignedUrlResponse.status !== 200) {
         setImageUploading(false);
@@ -196,15 +181,8 @@ export default function ArticleDetailsPage() {
   async function removeImage() {
     if (!form.coverImage) return;
     try {
-<<<<<<< HEAD
       await axios.delete("/s3", {
         data: {
-=======
-      await fetch("/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
->>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
           key: form.coverImage,
           folderPath: "article-images",
         },
@@ -243,15 +221,8 @@ export default function ArticleDetailsPage() {
     try {
       // Delete the cover image first if it exists
       if (article.coverImage) {
-<<<<<<< HEAD
         await axios.delete("/s3", {
           data: {
-=======
-        await fetch("/s3", {
-          method: "DELETE",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
->>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
             key: article.coverImage,
             folderPath: "article-images",
           },
