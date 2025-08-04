@@ -26,10 +26,10 @@ export const useDashboard = () => {
   return useQuery<DashboardData>({
     queryKey: ["dashboard"],
     queryFn: async () => {
-      const response = await axios.get("/api/dashboard");
+      const response = await axios.get("/dashboard");
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false,
   });
-}; 
+};

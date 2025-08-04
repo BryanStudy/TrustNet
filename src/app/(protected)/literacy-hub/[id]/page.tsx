@@ -10,7 +10,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, Save, X, Calendar, User as UserIcon, Clock, Tag, ImageIcon, Eye } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Save,
+  X,
+  Calendar,
+  User as UserIcon,
+  Clock,
+  Tag,
+  ImageIcon,
+  Eye,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/spinner";
 import { v4 as uuidv4 } from "uuid";
@@ -23,8 +34,6 @@ import {
 } from "@/components/ui/select";
 import { ARTICLE_CATEGORIES, CATEGORY_COLORS } from "@/config/articles";
 
-
-
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -33,11 +42,11 @@ function formatDate(dateString: string) {
   if (diffInHours < 24) {
     // If less than 24 hours, show "X hours ago"
     const hours = Math.floor(diffInHours);
-    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   } else if (diffInHours < 168) {
     // If less than 7 days, show "X days ago"
     const days = Math.floor(diffInHours / 24);
-    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
   } else {
     // Otherwise show the date
     return date.toLocaleDateString();
@@ -47,7 +56,12 @@ function formatDate(dateString: string) {
 export default function ArticleDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const articleId = typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : undefined;
+  const articleId =
+    typeof params.id === "string"
+      ? params.id
+      : Array.isArray(params.id)
+      ? params.id[0]
+      : undefined;
   const { article, isSuccess, isError, error, refetch } = useArticle(articleId);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<any>({});
@@ -62,11 +76,25 @@ export default function ArticleDetailsPage() {
     if (article) setForm(article);
   }, [article]);
 
-  if (!isSuccess) return <div className="p-8 text-center font-mono text-lg"><Spinner size="medium" color="black" /></div>;
-  if (isError || !article) return <div className="p-8 text-center text-red-500 font-mono text-lg">Error loading article.</div>;
+  if (!isSuccess)
+    return (
+      <div className="p-8 text-center font-mono text-lg">
+        <Spinner size="medium" color="black" />
+      </div>
+    );
+  if (isError || !article)
+    return (
+      <div className="p-8 text-center text-red-500 font-mono text-lg">
+        Error loading article.
+      </div>
+    );
 
   const initials = article.authorName
-    ? article.authorName.split(" ").map((n: string) => n[0]).join("").toUpperCase()
+    ? article.authorName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
     : "AU";
 
   const handleEdit = () => setEditMode(true);
@@ -74,8 +102,11 @@ export default function ArticleDetailsPage() {
     setEditMode(false);
     setForm(article);
   };
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const value =
+      e.target.type === "number" ? Number(e.target.value) : e.target.value;
     setForm({ ...form, [e.target.name]: value });
   };
 
@@ -88,7 +119,7 @@ export default function ArticleDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
+      const presignedUrlResponse = await fetch("/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -139,7 +170,7 @@ export default function ArticleDetailsPage() {
   async function removeImage() {
     if (!form.coverImage) return;
     try {
-      await fetch("/api/s3", {
+      await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -162,7 +193,10 @@ export default function ArticleDetailsPage() {
       await refetch();
       setEditMode(false);
     } catch (err: any) {
-      let apiError = err?.response?.data?.error || err?.message || "Failed to update article";
+      let apiError =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to update article";
       // If it's a Zod error array, join the messages
       if (Array.isArray(apiError)) {
         apiError = apiError.map((e: any) => e.message || String(e)).join(" | ");
@@ -178,7 +212,7 @@ export default function ArticleDetailsPage() {
     try {
       // Delete the cover image first if it exists
       if (article.coverImage) {
-        await fetch("/api/s3", {
+        await fetch("/s3", {
           method: "DELETE",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -191,7 +225,9 @@ export default function ArticleDetailsPage() {
       toast.success("Article deleted successfully");
       router.push("/literacy-hub");
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err?.message || "Failed to delete article");
+      toast.error(
+        err?.response?.data?.error || err?.message || "Failed to delete article"
+      );
     }
   };
 
@@ -205,7 +241,7 @@ export default function ArticleDetailsPage() {
               src={constructFileUrl(form.coverImage, "article-images")}
               alt="Cover"
               className="object-cover w-full h-full"
-              style={{ minHeight: 0, minWidth: 0, display: 'block' }}
+              style={{ minHeight: 0, minWidth: 0, display: "block" }}
             />
             {editMode && (
               <Button
@@ -259,15 +295,21 @@ export default function ArticleDetailsPage() {
         </Avatar>
         <div className="flex flex-col">
           <span className="font-sans-bold text-lg flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-gray-400" /> {article.authorName || "Author"}
+            <UserIcon className="w-5 h-5 text-gray-400" />{" "}
+            {article.authorName || "Author"}
           </span>
           <div className="flex items-center gap-3 text-gray-500 font-mono text-sm">
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              {article.createdAt ? new Date(article.createdAt).toLocaleString() : ""}
+              {article.createdAt
+                ? new Date(article.createdAt).toLocaleString()
+                : ""}
             </span>
             <span className="text-gray-400">•</span>
-            <span className="font-mono text-gray-500" title={new Date(article.updatedAt).toLocaleString()}>
+            <span
+              className="font-mono text-gray-500"
+              title={new Date(article.updatedAt).toLocaleString()}
+            >
               Updated {formatDate(article.updatedAt)}
             </span>
           </div>
@@ -279,7 +321,10 @@ export default function ArticleDetailsPage() {
         {editMode ? (
           <div className="flex items-center gap-3 w-full">
             <div className="flex-1">
-              <Select value={form.category} onValueChange={handleCategoryChange}>
+              <Select
+                value={form.category}
+                onValueChange={handleCategoryChange}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -308,7 +353,13 @@ export default function ArticleDetailsPage() {
           </div>
         ) : (
           <>
-            <Badge className={`font-mono text-xs px-3 py-1 rounded-full ${CATEGORY_COLORS[article.category as keyof typeof CATEGORY_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+            <Badge
+              className={`font-mono text-xs px-3 py-1 rounded-full ${
+                CATEGORY_COLORS[
+                  article.category as keyof typeof CATEGORY_COLORS
+                ] || "bg-gray-100 text-gray-800"
+              }`}
+            >
               <Tag className="w-4 h-4 mr-1 inline" /> {article.category}
             </Badge>
             <span className="font-mono text-xs text-gray-500 flex items-center gap-1">
@@ -330,7 +381,10 @@ export default function ArticleDetailsPage() {
           <h1 className="font-sans-bold text-2xl mb-2">{article.title}</h1>
           <div className="flex items-center gap-2 mb-4 text-gray-500 font-mono text-sm">
             <Eye className="w-4 h-4" />
-            <span>{article.viewCount || 0} {(article.viewCount === 1) ? "view" : "views"}</span>
+            <span>
+              {article.viewCount || 0}{" "}
+              {article.viewCount === 1 ? "view" : "views"}
+            </span>
           </div>
         </>
       )}
@@ -344,7 +398,9 @@ export default function ArticleDetailsPage() {
           rows={6}
         />
       ) : (
-        <p className="font-mono text-base text-gray-700 whitespace-pre-line">{article.content}</p>
+        <p className="font-mono text-base text-gray-700 whitespace-pre-line">
+          {article.content}
+        </p>
       )}
 
       {/* Edit/Delete Buttons */}
@@ -352,20 +408,38 @@ export default function ArticleDetailsPage() {
         <div className="flex gap-2 mt-6">
           {editMode ? (
             <>
-              <Button onClick={handleSave} className="bg-green-600 text-white flex items-center gap-1" disabled={updating || imageUploading}>
+              <Button
+                onClick={handleSave}
+                className="bg-green-600 text-white flex items-center gap-1"
+                disabled={updating || imageUploading}
+              >
                 <Save className="w-4 h-4" /> {updating ? "Saving..." : "Save"}
               </Button>
-              <Button onClick={handleCancel} variant="outline" className="flex items-center gap-1" disabled={updating || imageUploading}>
+              <Button
+                onClick={handleCancel}
+                variant="outline"
+                className="flex items-center gap-1"
+                disabled={updating || imageUploading}
+              >
                 <X className="w-4 h-4" /> Cancel
               </Button>
             </>
           ) : (
             <>
-              <Button onClick={handleEdit} className="bg-[var(--c-violet)] text-white flex items-center gap-1">
+              <Button
+                onClick={handleEdit}
+                className="bg-[var(--c-violet)] text-white flex items-center gap-1"
+              >
                 <Pencil className="w-4 h-4" /> Edit
               </Button>
-              <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1" disabled={deleting}>
-                <Trash2 className="w-4 h-4" /> {deleting ? "Deleting..." : "Delete"}
+              <Button
+                onClick={handleDelete}
+                variant="destructive"
+                className="flex items-center gap-1"
+                disabled={deleting}
+              >
+                <Trash2 className="w-4 h-4" />{" "}
+                {deleting ? "Deleting..." : "Delete"}
               </Button>
             </>
           )}

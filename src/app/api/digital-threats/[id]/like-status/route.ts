@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { GetCommand } from "@aws-sdk/lib-dynamodb";
-import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
+import ddbDocClient from "@/utils/dynamodb";
+import { GetCommand } from "@aws-sdk/lib-dynamodb";
+import { NextRequest, NextResponse } from "next/server";
 
 const THREAT_LIKES_TABLE = "threat-likes";
 
+// Get like status
 export async function GET(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

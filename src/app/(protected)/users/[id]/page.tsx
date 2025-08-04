@@ -12,11 +12,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserDeleteDialog } from "@/components/users/user-delete-dialog";
-import { useDeleteUser, useUpdateUser, useUser, useUserById } from "@/hooks/useUser";
+import {
+  useDeleteUser,
+  useUpdateUser,
+  useUser,
+  useUserById,
+} from "@/hooks/useUser";
 import axios from "@/utils/axios";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Calendar, ImageIcon, LogOut, Mail, Pencil, Save, Shield, Trash2, User as UserIcon, X } from "lucide-react";
+import {
+  Calendar,
+  ImageIcon,
+  LogOut,
+  Mail,
+  Pencil,
+  Save,
+  Shield,
+  Trash2,
+  User as UserIcon,
+  X,
+} from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -29,10 +45,10 @@ function formatDate(dateString: string) {
 
   if (diffInHours < 24) {
     const hours = Math.floor(diffInHours);
-    return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    return `${hours} ${hours === 1 ? "hour" : "hours"} ago`;
   } else if (diffInHours < 168) {
     const days = Math.floor(diffInHours / 24);
-    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
   } else {
     return date.toLocaleDateString();
   }
@@ -42,7 +58,12 @@ export default function UserDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const userId = typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : undefined;
+  const userId =
+    typeof params.id === "string"
+      ? params.id
+      : Array.isArray(params.id)
+      ? params.id[0]
+      : undefined;
   const { user, loading, isError, error, refetch } = useUserById(userId);
   const { userInfo: currentUser } = useUser(); // Get current logged-in user
   const [editMode, setEditMode] = useState(false);
@@ -53,7 +74,7 @@ export default function UserDetailsPage() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Check if the current user is viewing their own profile
   const isOwnProfile = currentUser?.userId === userId;
 
@@ -61,12 +82,23 @@ export default function UserDetailsPage() {
     if (user) setForm(user);
   }, [user]);
 
-  if (loading) return <div className="p-8 text-center font-mono text-lg"><Spinner size="medium" color="black" /></div>;
-  if (isError || !user) return <div className="p-8 text-center text-red-500 font-mono text-lg">Error loading user.</div>;
+  if (loading)
+    return (
+      <div className="p-8 text-center font-mono text-lg">
+        <Spinner size="medium" color="black" />
+      </div>
+    );
+  if (isError || !user)
+    return (
+      <div className="p-8 text-center text-red-500 font-mono text-lg">
+        Error loading user.
+      </div>
+    );
 
-  const initials = user.firstName && user.lastName
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : "?";
+  const initials =
+    user.firstName && user.lastName
+      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+      : "?";
 
   const handleEdit = () => setEditMode(true);
   const handleCancel = () => {
@@ -86,7 +118,7 @@ export default function UserDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
+      const presignedUrlResponse = await fetch("/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +169,7 @@ export default function UserDetailsPage() {
   async function removeImage() {
     if (!form.picture) return;
     try {
-      await fetch("/api/s3", {
+      await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -160,7 +192,8 @@ export default function UserDetailsPage() {
       await refetch();
       setEditMode(false);
     } catch (err: any) {
-      let apiError = err?.response?.data?.error || err?.message || "Failed to update user";
+      let apiError =
+        err?.response?.data?.error || err?.message || "Failed to update user";
       if (Array.isArray(apiError)) {
         apiError = apiError.map((e: any) => e.message || String(e)).join(" | ");
       } else if (typeof apiError === "object" && apiError.errors) {
@@ -176,22 +209,23 @@ export default function UserDetailsPage() {
 
   const confirmDelete = async () => {
     if (!userId) return;
-    
+
     setShowDeleteDialog(false);
-    
+
     try {
       await deleteUser(userId);
       toast.success("User deleted successfully");
       router.push("/users");
     } catch (err: any) {
-      let apiError = err?.response?.data?.error || err?.message || "Failed to delete user";
+      let apiError =
+        err?.response?.data?.error || err?.message || "Failed to delete user";
       toast.error(apiError);
     }
   };
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/logout");
+      await axios.post("/logout");
       queryClient.clear(); // clear query cache when user logs out
       router.push("/");
       toast.success("Logged out successfully");
@@ -205,9 +239,9 @@ export default function UserDetailsPage() {
       {/* Logout Button - Top left corner for own profile */}
       {isOwnProfile && !editMode && (
         <div className="absolute top-4 left-4">
-          <Button 
-            onClick={handleLogout} 
-            variant="outline" 
+          <Button
+            onClick={handleLogout}
+            variant="outline"
             size="sm"
             className="flex cursor-pointer items-center gap-1 text-red-600 border border-red-300 bg-white hover:bg-red-100 hover:border-red-400"
           >
@@ -215,7 +249,7 @@ export default function UserDetailsPage() {
           </Button>
         </div>
       )}
-      
+
       {/* Profile Picture */}
       <div className="relative w-32 h-32 mx-auto mb-6">
         <Avatar className="w-full h-full rounded-2xl">
@@ -230,7 +264,7 @@ export default function UserDetailsPage() {
             {initials}
           </AvatarFallback>
         </Avatar>
-        
+
         {editMode && (
           <div className="absolute -bottom-2 -right-2 flex gap-2">
             <input
@@ -342,8 +376,8 @@ export default function UserDetailsPage() {
               <Badge
                 variant="secondary"
                 className={`font-mono ${
-                  user.role === "admin" 
-                    ? "bg-[var(--c-mauve)] text-[var(--c-violet)]" 
+                  user.role === "admin"
+                    ? "bg-[var(--c-mauve)] text-[var(--c-violet)]"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
@@ -358,7 +392,12 @@ export default function UserDetailsPage() {
       <div className="space-y-4 mb-6">
         <div className="flex items-center gap-3 text-gray-500 font-mono text-sm">
           <Calendar className="w-4 h-4" />
-          <span>Created: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : ""}</span>
+          <span>
+            Created:{" "}
+            {user.createdAt
+              ? new Date(user.createdAt).toLocaleDateString()
+              : ""}
+          </span>
         </div>
         {user.updatedAt && (
           <div className="flex items-center gap-3 text-gray-500 font-mono text-sm">
@@ -372,17 +411,17 @@ export default function UserDetailsPage() {
       <div className="flex gap-2 justify-center">
         {editMode ? (
           <>
-            <Button 
-              onClick={handleSave} 
-              className="bg-green-600 hover:bg-green-600/80 text-white flex items-center gap-1 cursor-pointer" 
+            <Button
+              onClick={handleSave}
+              className="bg-green-600 hover:bg-green-600/80 text-white flex items-center gap-1 cursor-pointer"
               disabled={updating || imageUploading}
             >
               <Save className="w-4 h-4" /> {updating ? "Saving..." : "Save"}
             </Button>
-            <Button 
-              onClick={handleCancel} 
-              variant="outline" 
-              className="flex items-center gap-1 cursor-pointer" 
+            <Button
+              onClick={handleCancel}
+              variant="outline"
+              className="flex items-center gap-1 cursor-pointer"
               disabled={updating || imageUploading}
             >
               <X className="w-4 h-4" /> Cancel
@@ -390,19 +429,24 @@ export default function UserDetailsPage() {
           </>
         ) : (
           <>
-            <Button onClick={handleEdit} className="bg-[var(--c-violet)] hover:bg-[var(--c-violet)]/80 text-white flex items-center gap-1 cursor-pointer">
+            <Button
+              onClick={handleEdit}
+              className="bg-[var(--c-violet)] hover:bg-[var(--c-violet)]/80 text-white flex items-center gap-1 cursor-pointer"
+            >
               <Pencil className="w-4 h-4" /> Edit
             </Button>
             {!isOwnProfile && (
-              <Button onClick={handleDelete} variant="destructive" className="flex items-center gap-1 cursor-pointer hover:bg-red-500 hover:text-white">
+              <Button
+                onClick={handleDelete}
+                variant="destructive"
+                className="flex items-center gap-1 cursor-pointer hover:bg-red-500 hover:text-white"
+              >
                 <Trash2 className="w-4 h-4" /> Delete
               </Button>
             )}
           </>
         )}
       </div>
-
-
 
       {/* Delete Confirmation Dialog */}
       <UserDeleteDialog

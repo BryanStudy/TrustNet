@@ -6,7 +6,7 @@ export function useMyScamReports() {
   const { data, isLoading, refetch, isError, error } = useQuery<ScamReport[]>({
     queryKey: ["my-scam-reports"],
     queryFn: async () => {
-      const res = await axios.get("/api/scam-reports/read-reports/my-reports");
+      const res = await axios.get("/scam-reports/read-reports/my-reports");
       return res.data.reports;
     },
     staleTime: 5 * 60 * 1000,
@@ -29,7 +29,7 @@ export function useScamReport(reportId: string, createdAt: string) {
     queryKey: ["scam-report", reportId, createdAt],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/scam-reports/read-reports/${reportId}?createdAt=${encodeURIComponent(
+        `/scam-reports/read-reports/${reportId}?createdAt=${encodeURIComponent(
           createdAt
         )}`
       );
@@ -65,7 +65,7 @@ export function useScamReportsWithUserDetail(
         params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
       }
       const res = await axios.get(
-        `/api/scam-reports/read-reports?${params.toString()}`
+        `/scam-reports/read-reports?${params.toString()}`
       );
       return res.data as {
         reports: ScamReportWithUserDetail[];
@@ -104,7 +104,7 @@ export function useSearchedScamReports(
         params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
       }
       const res = await axios.get(
-        `/api/scam-reports/search-reports?${params.toString()}`
+        `/scam-reports/search-reports?${params.toString()}`
       );
       return res.data as {
         reports: ScamReportWithUserDetail[];
@@ -136,7 +136,7 @@ export function useScamReportWithUserDetail(
     queryKey: ["scam-report-with-user-detail", reportId, createdAt],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/scam-reports/read-reports/${reportId}/with-user-detail?createdAt=${encodeURIComponent(
+        `/scam-reports/read-reports/${reportId}/with-user-detail?createdAt=${encodeURIComponent(
           createdAt
         )}`
       );

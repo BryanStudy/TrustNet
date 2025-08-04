@@ -62,7 +62,7 @@ export const DigitalThreatsTable: React.FC<DigitalThreatsTableProps> = ({
   const handleDelete = async (threat: DigitalThreat) => {
     try {
       const response = await axios.delete(
-        `/api/digital-threats/delete-threats/${threat.threatId}`,
+        `/digital-threats/${threat.threatId}`,
         { data: { createdAt: threat.createdAt } }
       );
       if (response.status === 200) {

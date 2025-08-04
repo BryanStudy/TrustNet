@@ -3,6 +3,7 @@ import { z } from "zod";
 import { DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
+import axiosInstance from "@/utils/axios";
 
 const deleteReportSchema = z.object({
   createdAt: z.string().min(1, "createdAt is required"),
@@ -40,13 +41,6 @@ export async function DELETE(
   }
   const { createdAt, image } = validation.data;
 
-  if (!process.env.NEXT_PUBLIC_APP_BASE_URL) {
-    return NextResponse.json(
-      { error: "NEXT_PUBLIC_APP_BASE_URL is not set" },
-      { status: 500 }
-    );
-  }
-
   try {
     // Delete the report from DynamoDB
     const deleteCommand = new DeleteCommand({
@@ -55,16 +49,15 @@ export async function DELETE(
     });
     await ddbDocClient.send(deleteCommand);
 
-    // Delete the image from S3 via the internal API
-    const s3DeleteRes = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_BASE_URL || ""}/api/s3`,
-      {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ key: image, folderPath: "scam-reports" }),
-      }
-    );
-    if (!s3DeleteRes.ok) {
+    // Delete the image from S3 via the internal API using axios
+    try {
+      await axiosInstance.delete("/s3", {
+        data: {
+          key: image,
+          folderPath: "scam-reports",
+        },
+      });
+    } catch (err) {
       return NextResponse.json(
         { error: "Report deleted but failed to delete image from S3" },
         { status: 500 }
