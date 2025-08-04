@@ -21,11 +21,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-<<<<<<< HEAD
       const response = await axios.post('/login', { email, password });
-=======
-      const response = await axios.post("/login", { email, password });
->>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
       console.log(response.data.user.role);
       if (response.data.user.role === "customer") {
         router.push("/digital-threats");
