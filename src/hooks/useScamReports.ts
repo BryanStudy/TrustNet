@@ -6,7 +6,7 @@ export function useMyScamReports() {
   const { data, isLoading, refetch, isError, error } = useQuery<ScamReport[]>({
     queryKey: ["my-scam-reports"],
     queryFn: async () => {
-      const res = await axios.get("/scam-reports/read-reports/my-reports");
+      const res = await axios.get("/scam-reports/my-reports");
       return res.data.reports;
     },
     staleTime: 5 * 60 * 1000,
@@ -29,9 +29,7 @@ export function useScamReport(reportId: string, createdAt: string) {
     queryKey: ["scam-report", reportId, createdAt],
     queryFn: async () => {
       const res = await axios.get(
-        `/scam-reports/read-reports/${reportId}?createdAt=${encodeURIComponent(
-          createdAt
-        )}`
+        `/scam-reports/${reportId}?createdAt=${encodeURIComponent(createdAt)}`
       );
       return res.data as { report: ScamReport };
     },
@@ -64,9 +62,7 @@ export function useScamReportsWithUserDetail(
       if (lastEvaluatedKey) {
         params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
       }
-      const res = await axios.get(
-        `/scam-reports/read-reports?${params.toString()}`
-      );
+      const res = await axios.get(`/scam-reports?${params.toString()}`);
       return res.data as {
         reports: ScamReportWithUserDetail[];
         lastEvaluatedKey: any;
@@ -103,9 +99,7 @@ export function useSearchedScamReports(
       if (lastEvaluatedKey) {
         params.set("lastEvaluatedKey", JSON.stringify(lastEvaluatedKey));
       }
-      const res = await axios.get(
-        `/scam-reports/search-reports?${params.toString()}`
-      );
+      const res = await axios.get(`/scam-reports/search?${params.toString()}`);
       return res.data as {
         reports: ScamReportWithUserDetail[];
         lastEvaluatedKey: any;
@@ -136,7 +130,7 @@ export function useScamReportWithUserDetail(
     queryKey: ["scam-report-with-user-detail", reportId, createdAt],
     queryFn: async () => {
       const res = await axios.get(
-        `/scam-reports/read-reports/${reportId}/with-user-detail?createdAt=${encodeURIComponent(
+        `/scam-reports/${reportId}/with-user-detail?createdAt=${encodeURIComponent(
           createdAt
         )}`
       );

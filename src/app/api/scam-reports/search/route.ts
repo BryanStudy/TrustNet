@@ -5,6 +5,7 @@ import { ScamReport, ScamReportWithUserDetail } from "@/types/scam-reports";
 import { UserInfo } from "@/hooks/useUser";
 import { constructFileUrl } from "@/utils/fileUtils";
 
+// Search scam reports
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const title = searchParams.get("title") || "";

@@ -83,7 +83,10 @@ export default function ProfilePictureUploader({
       });
 
       if (presignedUrlResponse.status !== 200) {
-        console.error("Failed to get presigned URL:", presignedUrlResponse.data);
+        console.error(
+          "Failed to get presigned URL:",
+          presignedUrlResponse.data
+        );
         toast.error("Failed to get presigned URL");
         setFile((prev) =>
           prev ? { ...prev, uploading: false, progress: 0, error: true } : null

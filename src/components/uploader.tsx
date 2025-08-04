@@ -48,9 +48,9 @@ export default function Uploader({
       );
 
       const deleteFileResponse = await axios.delete("/s3", {
-        data: { 
+        data: {
           key: fileToRemove?.fileName,
-          folderPath: folderPath
+          folderPath: folderPath,
         },
       });
 

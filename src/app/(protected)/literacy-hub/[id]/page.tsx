@@ -35,7 +35,6 @@ import {
 import { ARTICLE_CATEGORIES, CATEGORY_COLORS } from "@/config/articles";
 import axios from "@/utils/axios";
 
-
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   const now = new Date();
@@ -134,7 +133,7 @@ export default function ArticleDetailsPage() {
         return;
       }
       const { presignedUrl, fileName } = presignedUrlResponse.data;
-      
+
       // Use XMLHttpRequest for presigned URL upload
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
