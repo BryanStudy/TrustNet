@@ -8,7 +8,7 @@ export function useDigitalThreats() {
   >({
     queryKey: ["digital-threats"],
     queryFn: async () => {
-      const res = await axios.get("/api/digital-threats/read-threats");
+      const res = await axios.get("/digital-threats/read-threats");
       return res.data.threats;
     },
     staleTime: 5 * 60 * 1000,
@@ -31,7 +31,7 @@ export function useMyDigitalThreats() {
     queryKey: ["my-digital-threats"],
     queryFn: async () => {
       const res = await axios.get(
-        "/api/digital-threats/read-threats/my-threats"
+        "/digital-threats/read-threats/my-threats"
       );
       return res.data.threats;
     },
@@ -56,7 +56,7 @@ export function useDigitalThreat(threatId: string, createdAt: string) {
     queryKey: ["digital-threat", threatId, createdAt],
     queryFn: async () => {
       const res = await axios.post(
-        `/api/digital-threats/read-threats/${threatId}`,
+        `/digital-threats/read-threats/${threatId}`,
         { createdAt }
       );
       return res.data;
@@ -89,7 +89,7 @@ export function useUpdateThreatStatus() {
       createdAt: string; 
       status: "verified" | "unverified" 
     }) => {
-      const response = await axios.patch(`/api/digital-threats/update-status/${threatId}`, {
+      const response = await axios.patch(`/digital-threats/update-status/${threatId}`, {
         createdAt,
         status,
       });

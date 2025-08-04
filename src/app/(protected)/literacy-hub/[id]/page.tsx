@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ARTICLE_CATEGORIES, CATEGORY_COLORS } from "@/config/articles";
-
+import axios from "@/utils/axios";
 
 
 function formatDate(dateString: string) {
@@ -88,31 +88,40 @@ export default function ArticleDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uuidv4() + "-" + file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath: "article-images",
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uuidv4() + "-" + file.name,
+        contentType: file.type,
+        size: file.size,
+        folderPath: "article-images",
       });
-      if (!presignedUrlResponse.ok) {
+      if (presignedUrlResponse.status !== 200) {
         setImageUploading(false);
         setImageError("Failed to get presigned URL");
         toast.error("Failed to get presigned URL");
         return;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
-      await fetch(presignedUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
+      
+      // Use XMLHttpRequest for presigned URL upload
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", presignedUrl);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.onload = () => {
+          if (xhr.status === 200 || xhr.status === 204) {
+            setImageUploading(false);
+            setForm({ ...form, coverImage: fileName });
+            toast.success("Image uploaded successfully");
+            resolve();
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => {
+          reject(new Error("Upload failed"));
+        };
+        xhr.send(file);
       });
-      setImageUploading(false);
-      setForm({ ...form, coverImage: fileName });
-      toast.success("Image uploaded successfully");
     } catch (err) {
       setImageUploading(false);
       setImageError("Failed to upload image");
@@ -139,13 +148,11 @@ export default function ArticleDetailsPage() {
   async function removeImage() {
     if (!form.coverImage) return;
     try {
-      await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      await axios.delete("/s3", {
+        data: {
           key: form.coverImage,
           folderPath: "article-images",
-        }),
+        },
       });
       setForm({ ...form, coverImage: "" });
       toast.success("Image removed successfully");
@@ -178,13 +185,11 @@ export default function ArticleDetailsPage() {
     try {
       // Delete the cover image first if it exists
       if (article.coverImage) {
-        await fetch("/api/s3", {
-          method: "DELETE",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
+        await axios.delete("/s3", {
+          data: {
             key: article.coverImage,
             folderPath: "article-images",
-          }),
+          },
         });
       }
       await deleteArticle(articleId);

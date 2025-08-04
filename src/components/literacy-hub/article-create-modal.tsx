@@ -34,6 +34,7 @@ import { PenSquare, Loader2, Trash2, Image as ImageIcon } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { constructFileUrl } from "@/utils/fileUtils";
 import { ARTICLE_CATEGORIES } from "@/config/articles";
+import axios from "@/utils/axios";
 
 const categories = ARTICLE_CATEGORIES;
 
@@ -93,27 +94,22 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uuidv4() + "-" + file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath: "article-images",
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uuidv4() + "-" + file.name,
+        contentType: file.type,
+        size: file.size,
+        folderPath: "article-images",
       });
-      if (!presignedUrlResponse.ok) {
-        setImageUploading(false);
+
+      if (presignedUrlResponse.status !== 200) {
         setImageError("Failed to get presigned URL");
         toast.error("Failed to get presigned URL");
-        return;
+        return null;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
-      await fetch(presignedUrl, {
-        method: "PUT",
+
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
+      await axios.put(presignedUrl, file, {
         headers: { "Content-Type": file.type },
-        body: file,
       });
       setImageUploading(false);
       setImageFile(file);

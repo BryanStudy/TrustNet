@@ -75,7 +75,7 @@ export default function DigitalThreatsUpdateModal({
     setLoading(true);
     try {
       const response = await axios.put(
-        `/api/digital-threats/update-threats/${threat.threatId}`,
+        `/digital-threats/update-threats/${threat.threatId}`,
         {
           ...data,
           createdAt: threat.createdAt,

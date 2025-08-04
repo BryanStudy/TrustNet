@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Trash2, User } from "lucide-react";
+import axios from "@/utils/axios";
 
 type UploadFile = {
   id: string;
@@ -43,20 +44,15 @@ export default function ProfilePictureUploader({
 
       setFile((prev) => (prev ? { ...prev, isDeleting: true } : null));
 
-      const deleteFileResponse = await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      const deleteFileResponse = await axios.delete("/s3", {
+        data: {
           key: file.fileName,
           folderPath: folderPath,
-        }),
+        },
       });
 
-      if (!deleteFileResponse.ok) {
-        console.error(
-          "Failed to delete file:",
-          await deleteFileResponse.text()
-        );
+      if (deleteFileResponse.status !== 200) {
+        console.error("Failed to delete file:", deleteFileResponse.data);
         toast.error("Failed to delete file");
         setFile((prev) =>
           prev ? { ...prev, isDeleting: false, error: true } : null
@@ -79,22 +75,15 @@ export default function ProfilePictureUploader({
     setFile((prev) => (prev ? { ...prev, uploading: true } : null));
 
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uploadFile.name,
-          contentType: uploadFile.type,
-          size: uploadFile.size,
-          folderPath: folderPath,
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uploadFile.name,
+        contentType: uploadFile.type,
+        size: uploadFile.size,
+        folderPath: folderPath,
       });
 
-      if (!presignedUrlResponse.ok) {
-        console.error(
-          "Failed to get presigned URL:",
-          await presignedUrlResponse.text()
-        );
+      if (presignedUrlResponse.status !== 200) {
+        console.error("Failed to get presigned URL:", presignedUrlResponse.data);
         toast.error("Failed to get presigned URL");
         setFile((prev) =>
           prev ? { ...prev, uploading: false, progress: 0, error: true } : null
@@ -102,7 +91,7 @@ export default function ProfilePictureUploader({
         return;
       }
 
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();

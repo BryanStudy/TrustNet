@@ -22,7 +22,7 @@ export function useThreatLike({
     queryKey: ["threat-like-status", threatId],
     queryFn: async () => {
       const res = await axios.get(
-        `/api/digital-threats/read-like-status/${threatId}`
+        `/digital-threats/read-like-status/${threatId}`
       );
       return res.data.liked as boolean;
     },
@@ -37,7 +37,7 @@ export function useThreatLike({
     error: likeMutateErrorObj,
   } = useMutation({
     mutationFn: async () => {
-      await axios.post(`/api/digital-threats/upvote-threats/${threatId}`, {
+      await axios.post(`/digital-threats/upvote-threats/${threatId}`, {
         createdAt,
       });
     },
@@ -58,7 +58,7 @@ export function useThreatLike({
     error: unlikeMutateErrorObj,
   } = useMutation({
     mutationFn: async () => {
-      await axios.delete(`/api/digital-threats/upvote-threats/${threatId}`, {
+      await axios.delete(`/digital-threats/upvote-threats/${threatId}`, {
         data: { createdAt },
       });
     },

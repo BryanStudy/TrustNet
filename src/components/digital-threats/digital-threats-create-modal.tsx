@@ -63,7 +63,7 @@ export default function DigitalThreatsModal({
     setLoading(true);
     try {
       const response = await axios.post(
-        "/api/digital-threats/create-threats",
+        "/digital-threats/create-threats",
         data
       );
       if (response.status === 200) {

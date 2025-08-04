@@ -26,7 +26,7 @@ export function useUser() {
   const { data, isLoading, refetch, isError, error } = useQuery<UserInfo>({
     queryKey: ["current-user"],
     queryFn: async () => {
-      const res = await axios.get("/api/me");
+      const res = await axios.get("/me");
       return res.data.user;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -53,7 +53,7 @@ export function useUsers() {
     queryKey: ["users"],
     queryFn: async () => {
       try {
-        const response = await axios.get("/api/users");
+        const response = await axios.get("/users");
         return response.data.users;
       } catch (err) {
         const error = err as AxiosError<ErrorResponse>;
@@ -84,7 +84,7 @@ export function useUserById(userId: string | undefined) {
     queryKey: ["user", userId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID is required");
-      const res = await axios.get(`/api/users/${userId}`);
+      const res = await axios.get(`/users/${userId}`);
       return res.data.user;
     },
     enabled: !!userId,
@@ -112,7 +112,7 @@ export function useUpdateUser() {
       userId: string;
       data: Partial<UserInfo>;
     }) => {
-      const response = await axios.patch(`/api/users/${userId}`, data);
+      const response = await axios.patch(`/users/${userId}`, data);
       return response.data.user;
     },
     onSuccess: (updatedUser) => {
@@ -129,7 +129,7 @@ export function useDeleteUser() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await axios.delete(`/api/users/${userId}`);
+      const response = await axios.delete(`/users/${userId}`);
       return response.data;
     },
     onSuccess: () => {
@@ -164,27 +164,21 @@ export function useImageUpload(folderPath: string) {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uuidv4() + "-" + file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath,
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uuidv4() + "-" + file.name,
+        contentType: file.type,
+        size: file.size,
+        folderPath,
       });
-      if (!presignedUrlResponse.ok) {
+      if (presignedUrlResponse.status !== 200) {
         setImageUploading(false);
         setImageError("Failed to get presigned URL");
         toast.error("Failed to get presigned URL");
         return null;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
-      await fetch(presignedUrl, {
-        method: "PUT",
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
+      await axios.put(presignedUrl, file, {
         headers: { "Content-Type": file.type },
-        body: file,
       });
       setImageUploading(false);
       toast.success("Image uploaded successfully");
@@ -200,13 +194,11 @@ export function useImageUpload(folderPath: string) {
   const removeImage = async (fileName: string): Promise<boolean> => {
     if (!fileName) return false;
     try {
-      await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      await axios.delete("/s3", {
+        data: {
           key: fileName,
           folderPath,
-        }),
+        },
       });
       toast.success("Image removed successfully");
       return true;

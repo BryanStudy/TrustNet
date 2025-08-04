@@ -44,7 +44,7 @@ export default function NewScamReportPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await axios.post("/api/scam-reports/create-report", data);
+      await axios.post("/scam-reports/create-report", data);
       toast.success("Scam report posted successfully!");
       queryClient.invalidateQueries({ queryKey: ["my-scam-reports"] });
       queryClient.invalidateQueries({

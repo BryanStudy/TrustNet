@@ -53,7 +53,7 @@ export default function SignUpPage() {
       return;
     }
     try {
-      await axios.post('/api/users', {
+      await axios.post('/users', {
         firstName,
         lastName,
         picture,

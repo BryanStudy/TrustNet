@@ -93,7 +93,7 @@ export default function CreateUserPage() {
     }
     
     try {
-      await axios.post('/api/users/admin-create', {
+      await axios.post('/users/admin-create', {
         firstName,
         lastName,
         picture,

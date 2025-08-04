@@ -86,7 +86,7 @@ export default function UserDetailsPage() {
     setImageUploading(true);
     setImageError(null);
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
+      const presignedUrlResponse = await fetch("/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export default function UserDetailsPage() {
   async function removeImage() {
     if (!form.picture) return;
     try {
-      await fetch("/api/s3", {
+      await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +191,7 @@ export default function UserDetailsPage() {
 
   const handleLogout = async () => {
     try {
-      await axios.post("/api/logout");
+      await axios.post("/logout");
       queryClient.clear(); // clear query cache when user logs out
       router.push("/");
       toast.success("Logged out successfully");

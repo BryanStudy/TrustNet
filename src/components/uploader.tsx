@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Trash2 } from "lucide-react";
+import axios from "@/utils/axios";
 
 type UploadFile = {
   id: string;
@@ -42,17 +43,15 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
         prevFiles.map((f) => (f.id === fileId ? { ...f, isDeleting: true } : f))
       );
 
-      const deleteFileResponse = await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ 
+      const deleteFileResponse = await axios.delete("/s3", {
+        data: { 
           key: fileToRemove?.fileName,
           folderPath: folderPath
-        }),
+        },
       });
 
-      if (!deleteFileResponse.ok) {
-        console.error("Failed to delete file:", await deleteFileResponse.text());
+      if (deleteFileResponse.status !== 200) {
+        console.error("Failed to delete file:", deleteFileResponse.data);
         toast.error("Failed to delete file");
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
@@ -82,20 +81,14 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
     );
 
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: file.name,
-          contentType: file.type,
-          size: file.size,
-          folderPath: folderPath,
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: file.name,
+        contentType: file.type,
+        size: file.size,
+        folderPath: folderPath,
       });
 
-      if (!presignedUrlResponse.ok) {
-        console.error("Failed to get presigned URL:", await presignedUrlResponse.text());
-        toast.error("Failed to get presigned URL");
+      if (presignedUrlResponse.status !== 200) {
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
             f.file === file
@@ -103,9 +96,11 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
               : f
           )
         );
+        toast.error("Failed to get presigned URL");
         return;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
+
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();

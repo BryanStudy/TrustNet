@@ -6,7 +6,7 @@ export function useArticles() {
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["articles"],
     queryFn: async () => {
-      const res = await axios.get("/api/literacy-hub/read-articles");
+      const res = await axios.get("/literacy-hub/read-articles");
       return res.data.articles;
     },
     staleTime: 5 * 60 * 1000,
@@ -29,7 +29,7 @@ export function useArticle(articleId?: string) {
     queryKey: ["article", articleId],
     queryFn: async () => {
       if (!articleId) throw new Error("No articleId provided");
-      const res = await axios.get(`/api/literacy-hub/read-article/${articleId}`);
+      const res = await axios.get(`/literacy-hub/read-article/${articleId}`);
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       return res.data.article;
     },
@@ -51,7 +51,7 @@ export function useArticle(articleId?: string) {
 export function useCreateArticle() {
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await axios.post("/api/literacy-hub/create-article", data);
+      const res = await axios.post("/literacy-hub/create-article", data);
       return res.data;
     },
   });
@@ -70,7 +70,7 @@ export function useUpdateArticle() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async ({ articleId, data }: { articleId: string; data: any }) => {
-      const res = await axios.patch(`/api/literacy-hub/update-article/${articleId}`, data);
+      const res = await axios.patch(`/literacy-hub/update-article/${articleId}`, data);
       return res.data.article;
     },
     onSuccess: () => {
@@ -91,7 +91,7 @@ export function useUpdateArticle() {
 export function useDeleteArticle() {
   const mutation = useMutation({
     mutationFn: async (articleId: string) => {
-      const res = await axios.delete(`/api/literacy-hub/delete-article/${articleId}`);
+      const res = await axios.delete(`/literacy-hub/delete-article/${articleId}`);
       return res.data;
     },
   });
