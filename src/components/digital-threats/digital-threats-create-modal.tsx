@@ -62,10 +62,7 @@ export default function DigitalThreatsModal({
   const onSubmit = async (data: DigitalThreatForm) => {
     setLoading(true);
     try {
-      const response = await axios.post(
-        "/digital-threats/create-threats",
-        data
-      );
+      const response = await axios.post("/digital-threats", data);
       if (response.status === 200) {
         toast.success("Threat created successfully");
         setLoading(false);

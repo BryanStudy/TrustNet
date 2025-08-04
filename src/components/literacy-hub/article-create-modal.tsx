@@ -38,13 +38,17 @@ import axios from "@/utils/axios";
 
 const categories = ARTICLE_CATEGORIES;
 
-type ArticleForm = z.infer<typeof createArticleSchema> & { coverImage?: string };
+type ArticleForm = z.infer<typeof createArticleSchema> & {
+  coverImage?: string;
+};
 
 interface ArticleCreateModalProps {
   onRefetch?: () => void;
 }
 
-export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProps) {
+export default function ArticleCreateModal({
+  onRefetch,
+}: ArticleCreateModalProps) {
   const [open, setOpen] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -62,7 +66,8 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
       coverImage: undefined,
     },
   });
-  const { createArticle, isLoading, error, isSuccess, reset } = useCreateArticle();
+  const { createArticle, isLoading, error, isSuccess, reset } =
+    useCreateArticle();
 
   const handleOpenChange = (val: boolean) => {
     setOpen(val);
@@ -84,7 +89,10 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
       if (onRefetch) onRefetch();
       setOpen(false);
     } catch (err: any) {
-      const apiError = err?.response?.data?.error || err?.message || "Failed to create article";
+      const apiError =
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to create article";
       toast.error(apiError);
     }
   };
@@ -163,10 +171,17 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
           </DialogTitle>
         </DialogHeader>
         <div className="mb-4">
-          <label className="font-mono-bold text-base block mb-2">Cover Image</label>
+          <label className="font-mono-bold text-base block mb-2">
+            Cover Image
+          </label>
           {imageUrl ? (
             <div className="relative w-full aspect-[16/9] mb-2 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-              <img src={imageUrl} alt="Cover" className="object-cover w-full h-full" style={{ minHeight: 0, minWidth: 0 }} />
+              <img
+                src={imageUrl}
+                alt="Cover"
+                className="object-cover w-full h-full"
+                style={{ minHeight: 0, minWidth: 0 }}
+              />
               <Button
                 type="button"
                 size="icon"
@@ -198,12 +213,16 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
               ) : (
                 <>
                   <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="font-mono text-gray-500">Click or drag to upload</span>
+                  <span className="font-mono text-gray-500">
+                    Click or drag to upload
+                  </span>
                 </>
               )}
             </div>
           )}
-          {imageError && <div className="text-red-500 text-xs mt-1">{imageError}</div>}
+          {imageError && (
+            <div className="text-red-500 text-xs mt-1">{imageError}</div>
+          )}
         </div>
         <Form {...form}>
           <form
@@ -249,7 +268,9 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
                       </SelectTrigger>
                       <SelectContent className="font-mono">
                         {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -274,7 +295,7 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
                       className="w-full px-3 py-2 border rounded-md font-mono text-base bg-transparent focus:outline-none focus:ring-2 focus:ring-[--c-violet]"
                       {...field}
                       value={field.value || ""}
-                      onChange={e => field.onChange(Number(e.target.value))}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -316,4 +337,4 @@ export default function ArticleCreateModal({ onRefetch }: ArticleCreateModalProp
       </DialogContent>
     </Dialog>
   );
-} 
+}

@@ -4,6 +4,7 @@ import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
 import { DigitalThreat } from "@/types/digital-threats";
 
+// Get user's threats
 export async function GET(req: NextRequest) {
   let userPayload;
   try {

@@ -44,8 +44,15 @@ export default function ProfilePictureUploader({
 
       setFile((prev) => (prev ? { ...prev, isDeleting: true } : null));
 
+<<<<<<< HEAD
       const deleteFileResponse = await axios.delete("/s3", {
         data: {
+=======
+      const deleteFileResponse = await fetch("/s3", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+>>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
           key: file.fileName,
           folderPath: folderPath,
         },
@@ -75,11 +82,23 @@ export default function ProfilePictureUploader({
     setFile((prev) => (prev ? { ...prev, uploading: true } : null));
 
     try {
+<<<<<<< HEAD
       const presignedUrlResponse = await axios.post("/s3", {
         fileName: uploadFile.name,
         contentType: uploadFile.type,
         size: uploadFile.size,
         folderPath: folderPath,
+=======
+      const presignedUrlResponse = await fetch("/s3", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          fileName: uploadFile.name,
+          contentType: uploadFile.type,
+          size: uploadFile.size,
+          folderPath: folderPath,
+        }),
+>>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
       });
 
       if (presignedUrlResponse.status !== 200) {
@@ -219,7 +238,10 @@ export default function ProfilePictureUploader({
                 <p className="text-sm text-gray-600 text-center">
                   Drop your profile picture here, or click to select
                 </p>
-                <Button className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90 cursor-pointer" type="button">
+                <Button
+                  className="bg-[var(--c-violet)] text-white hover:bg-[var(--c-violet)]/90 cursor-pointer"
+                  type="button"
+                >
                   Choose Picture
                 </Button>
               </div>

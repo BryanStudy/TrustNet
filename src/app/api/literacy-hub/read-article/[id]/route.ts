@@ -1,4 +1,4 @@
-// File: src/app/api/literacy-hub/read-article/[id]/route.ts
+// File: src/app/literacy-hub/read-article/[id]/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
@@ -12,7 +12,10 @@ export async function GET(
     const { id } = await context.params;
 
     if (!id) {
-      return NextResponse.json({ error: "articleId is required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "articleId is required." },
+        { status: 400 }
+      );
     }
 
     // First get the current article
@@ -31,18 +34,24 @@ export async function GET(
     const updateCommand = new UpdateCommand({
       TableName: "articles",
       Key: { articleId: id },
-      UpdateExpression: "SET viewCount = if_not_exists(viewCount, :zero) + :inc",
+      UpdateExpression:
+        "SET viewCount = if_not_exists(viewCount, :zero) + :inc",
       ExpressionAttributeValues: {
         ":zero": 0,
-        ":inc": 1
+        ":inc": 1,
       },
-      ReturnValues: "ALL_NEW"
+      ReturnValues: "ALL_NEW",
     });
 
-    const { Attributes: updatedArticle } = await ddbDocClient.send(updateCommand);
+    const { Attributes: updatedArticle } = await ddbDocClient.send(
+      updateCommand
+    );
 
     if (!updatedArticle) {
-      return NextResponse.json({ error: "Failed to update view count" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to update view count" },
+        { status: 500 }
+      );
     }
 
     let authorName = "Unknown User";
@@ -70,6 +79,9 @@ export async function GET(
     );
   } catch (error) {
     console.error("Error fetching article:", error);
-    return NextResponse.json({ error: "Failed to fetch article" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch article" },
+      { status: 500 }
+    );
   }
 }

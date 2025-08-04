@@ -27,7 +27,11 @@ interface UploaderProps {
   sizeLimit?: number;
 }
 
-export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 * 1024 * 5 }: UploaderProps) {
+export default function Uploader({
+  folderPath,
+  fileLimit = 1,
+  sizeLimit = 1024 * 1024 * 5,
+}: UploaderProps) {
   const [files, setFiles] = useState<UploadFile[]>([]);
 
   async function removeFile(fileId: string) {
@@ -81,6 +85,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
     );
 
     try {
+<<<<<<< HEAD
       const presignedUrlResponse = await axios.post("/s3", {
         fileName: file.name,
         contentType: file.type,
@@ -89,6 +94,25 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
       });
 
       if (presignedUrlResponse.status !== 200) {
+=======
+      const presignedUrlResponse = await fetch("/s3", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+          folderPath: folderPath,
+        }),
+      });
+
+      if (!presignedUrlResponse.ok) {
+        console.error(
+          "Failed to get presigned URL:",
+          await presignedUrlResponse.text()
+        );
+        toast.error("Failed to get presigned URL");
+>>>>>>> 48e2154f37d6ffef44d14b671a7aab36f4c57969
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
             f.file === file

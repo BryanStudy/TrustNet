@@ -69,8 +69,17 @@ export function useCreateArticle() {
 export function useUpdateArticle() {
   const queryClient = useQueryClient();
   const mutation = useMutation({
-    mutationFn: async ({ articleId, data }: { articleId: string; data: any }) => {
-      const res = await axios.patch(`/literacy-hub/update-article/${articleId}`, data);
+    mutationFn: async ({
+      articleId,
+      data,
+    }: {
+      articleId: string;
+      data: any;
+    }) => {
+      const res = await axios.patch(
+        `/literacy-hub/update-article/${articleId}`,
+        data
+      );
       return res.data.article;
     },
     onSuccess: () => {
@@ -91,7 +100,9 @@ export function useUpdateArticle() {
 export function useDeleteArticle() {
   const mutation = useMutation({
     mutationFn: async (articleId: string) => {
-      const res = await axios.delete(`/literacy-hub/delete-article/${articleId}`);
+      const res = await axios.delete(
+        `/literacy-hub/delete-article/${articleId}`
+      );
       return res.data;
     },
   });
@@ -103,4 +114,4 @@ export function useDeleteArticle() {
     isSuccess: mutation.isSuccess,
     reset: mutation.reset,
   };
-} 
+}

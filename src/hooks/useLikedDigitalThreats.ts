@@ -8,7 +8,7 @@ export function useLikedDigitalThreats() {
   >({
     queryKey: ["liked-digital-threats"],
     queryFn: async () => {
-      const res = await axios.get("/digital-threats/read-liked-threats");
+      const res = await axios.get("/digital-threats/liked");
       return res.data;
     },
     staleTime: 5 * 60 * 1000,

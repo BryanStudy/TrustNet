@@ -1,6 +1,6 @@
 import axios from "@/utils/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DigitalThreat } from "@/types/digital-threats";
+import { DigitalThreat, DigitalThreats } from "@/types/digital-threats";
 
 export function useDigitalThreats() {
   const { data, isLoading, refetch, isError, error } = useQuery<
@@ -8,7 +8,7 @@ export function useDigitalThreats() {
   >({
     queryKey: ["digital-threats"],
     queryFn: async () => {
-      const res = await axios.get("/digital-threats/read-threats");
+      const res = await axios.get<DigitalThreats>("/digital-threats");
       return res.data.threats;
     },
     staleTime: 5 * 60 * 1000,
@@ -30,9 +30,7 @@ export function useMyDigitalThreats() {
   >({
     queryKey: ["my-digital-threats"],
     queryFn: async () => {
-      const res = await axios.get(
-        "/digital-threats/read-threats/my-threats"
-      );
+      const res = await axios.get("/digital-threats/my-threats");
       return res.data.threats;
     },
     staleTime: 5 * 60 * 1000,
@@ -55,10 +53,9 @@ export function useDigitalThreat(threatId: string, createdAt: string) {
   }>({
     queryKey: ["digital-threat", threatId, createdAt],
     queryFn: async () => {
-      const res = await axios.post(
-        `/digital-threats/read-threats/${threatId}`,
-        { createdAt }
-      );
+      const res = await axios.post(`/digital-threats/${threatId}`, {
+        createdAt,
+      });
       return res.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -78,28 +75,31 @@ export function useDigitalThreat(threatId: string, createdAt: string) {
 
 export function useUpdateThreatStatus() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      threatId, 
-      createdAt, 
-      status 
-    }: { 
-      threatId: string; 
-      createdAt: string; 
-      status: "verified" | "unverified" 
+    mutationFn: async ({
+      threatId,
+      createdAt,
+      status,
+    }: {
+      threatId: string;
+      createdAt: string;
+      status: "verified" | "unverified";
     }) => {
-      const response = await axios.patch(`/digital-threats/update-status/${threatId}`, {
-        createdAt,
-        status,
-      });
+      const response = await axios.patch(
+        `/digital-threats/${threatId}/status`,
+        {
+          createdAt,
+          status,
+        }
+      );
       return response.data;
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
       queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["digital-threat", variables.threatId, variables.createdAt] 
+      queryClient.invalidateQueries({
+        queryKey: ["digital-threat", variables.threatId, variables.createdAt],
       });
     },
   });
