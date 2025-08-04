@@ -37,7 +37,7 @@ export const MyReportsTable: React.FC<MyReportsTableProps> = ({
     setDeletingId(report.reportId);
     try {
       const res = await axios.delete(
-        `/api/scam-reports/delete-report/${report.reportId}`,
+        `/scam-reports/delete-report/${report.reportId}`,
         {
           data: { createdAt: report.createdAt, image: report.image },
           headers: { "content-type": "application/json" },

@@ -9,3 +9,7 @@ export type DigitalThreat = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type DigitalThreats = {
+  threats: DigitalThreat[];
+};

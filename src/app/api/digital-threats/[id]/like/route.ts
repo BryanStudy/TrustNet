@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { TransactWriteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
-import ddbDocClient from "@/utils/dynamodb";
 import { verifyAuth } from "@/utils/auth";
+import ddbDocClient from "@/utils/dynamodb";
+import { GetCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { NextRequest, NextResponse } from "next/server";
 
-const DIGITAL_THREATS_TABLE = "digital-threats";
 const THREAT_LIKES_TABLE = "threat-likes";
+const DIGITAL_THREATS_TABLE = "digital-threats";
 
+// Like threat
 export async function POST(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }
@@ -96,6 +97,7 @@ export async function POST(
   }
 }
 
+// Unlike threat
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ id: string }> }

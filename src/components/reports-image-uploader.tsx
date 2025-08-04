@@ -44,7 +44,7 @@ export default function ReportsImageUploader({
   async function removeInitialFile() {
     if (!initialFileName) return;
     try {
-      const deleteFileResponse = await fetch("/api/s3", {
+      const deleteFileResponse = await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -71,7 +71,7 @@ export default function ReportsImageUploader({
         URL.revokeObjectURL(file.objectUrl);
       }
       setFile((prev) => (prev ? { ...prev, isDeleting: true } : null));
-      const deleteFileResponse = await fetch("/api/s3", {
+      const deleteFileResponse = await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -99,7 +99,7 @@ export default function ReportsImageUploader({
   async function uploadFile(uploadFile: File) {
     setFile((prev) => (prev ? { ...prev, uploading: true } : null));
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
+      const presignedUrlResponse = await fetch("/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const handleSave = async () => {
     if (!isEditing || !userInfo) return;
     try {
-      await axios.patch(`/api/users/${userInfo?.userId}`, {
+      await axios.patch(`/users/${userInfo?.userId}`, {
         firstName,
         lastName,
       });

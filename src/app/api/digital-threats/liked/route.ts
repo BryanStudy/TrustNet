@@ -11,6 +11,7 @@ const DIGITAL_THREATS_TABLE =
 const USERID_INDEX = "userId-index";
 const THREATID_INDEX = "threatId-index";
 
+// Get liked threats
 export async function GET(req: NextRequest) {
   try {
     const payload = await verifyAuth(req);

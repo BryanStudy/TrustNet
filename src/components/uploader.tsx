@@ -26,7 +26,11 @@ interface UploaderProps {
   sizeLimit?: number;
 }
 
-export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 * 1024 * 5 }: UploaderProps) {
+export default function Uploader({
+  folderPath,
+  fileLimit = 1,
+  sizeLimit = 1024 * 1024 * 5,
+}: UploaderProps) {
   const [files, setFiles] = useState<UploadFile[]>([]);
 
   async function removeFile(fileId: string) {
@@ -42,17 +46,20 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
         prevFiles.map((f) => (f.id === fileId ? { ...f, isDeleting: true } : f))
       );
 
-      const deleteFileResponse = await fetch("/api/s3", {
+      const deleteFileResponse = await fetch("/s3", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           key: fileToRemove?.fileName,
-          folderPath: folderPath
+          folderPath: folderPath,
         }),
       });
 
       if (!deleteFileResponse.ok) {
-        console.error("Failed to delete file:", await deleteFileResponse.text());
+        console.error(
+          "Failed to delete file:",
+          await deleteFileResponse.text()
+        );
         toast.error("Failed to delete file");
         setFiles((prevFiles) =>
           prevFiles.map((f) =>
@@ -82,7 +89,7 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
     );
 
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
+      const presignedUrlResponse = await fetch("/s3", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -94,7 +101,10 @@ export default function Uploader({ folderPath, fileLimit = 1, sizeLimit = 1024 *
       });
 
       if (!presignedUrlResponse.ok) {
-        console.error("Failed to get presigned URL:", await presignedUrlResponse.text());
+        console.error(
+          "Failed to get presigned URL:",
+          await presignedUrlResponse.text()
+        );
         toast.error("Failed to get presigned URL");
         setFiles((prevFiles) =>
           prevFiles.map((f) =>

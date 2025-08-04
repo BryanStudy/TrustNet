@@ -74,13 +74,10 @@ export default function DigitalThreatsUpdateModal({
     if (!threat) return;
     setLoading(true);
     try {
-      const response = await axios.put(
-        `/api/digital-threats/update-threats/${threat.threatId}`,
-        {
-          ...data,
-          createdAt: threat.createdAt,
-        }
-      );
+      const response = await axios.put(`/digital-threats/${threat.threatId}`, {
+        ...data,
+        createdAt: threat.createdAt,
+      });
       if (response.status === 200) {
         toast.success("Threat updated successfully");
         setLoading(false);
