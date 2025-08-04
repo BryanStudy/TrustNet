@@ -61,7 +61,7 @@ function validateUpdateArticle(data) {
   return errors;
 }
 
-// Create article (POST /literacy-hub/create-article)
+// Create article (POST /literacy-hub)
 async function handleCreateArticle(event) {
   try {
     // Check if user is authenticated
@@ -147,7 +147,7 @@ async function handleCreateArticle(event) {
   }
 }
 
-// Read all articles (GET /literacy-hub/read-articles)
+// Read all articles (GET /literacy-hub)
 async function handleReadArticles(event) {
   try {
     const command = new QueryCommand({
@@ -201,7 +201,7 @@ async function handleReadArticles(event) {
   }
 }
 
-// Read single article (GET /literacy-hub/read-article/{id})
+// Read single article (GET /literacy-hub/{id})
 async function handleReadArticle(event) {
   try {
     const articleId = event.pathParameters?.id;
@@ -286,7 +286,7 @@ async function handleReadArticle(event) {
   }
 }
 
-// Update article (PATCH /literacy-hub/update-article/{id})
+// Update article (PUT /literacy-hub/{id})
 async function handleUpdateArticle(event) {
   try {
     const articleId = event.pathParameters?.id;
@@ -399,7 +399,7 @@ async function handleUpdateArticle(event) {
   }
 }
 
-// Delete article (DELETE /literacy-hub/delete-article/{id})
+// Delete article (DELETE /literacy-hub/{id})
 async function handleDeleteArticle(event) {
   try {
     const articleId = event.pathParameters?.id;
@@ -436,28 +436,25 @@ async function handleDeleteArticle(event) {
 export const handler = async (event) => {
   try {
     switch (event.routeKey) {
-      case 'POST /literacy-hub/create-article':
+      case 'POST /literacy-hub':
         return await handleCreateArticle(event);
-      case 'GET /literacy-hub/read-articles':
+      case 'GET /literacy-hub':
         return await handleReadArticles(event);
-      case 'GET /literacy-hub/read-article/{id}':
+      case 'GET /literacy-hub/{id}':
         return await handleReadArticle(event);
-      case 'PATCH /literacy-hub/update-article/{id}':
+      case 'PUT /literacy-hub/{id}':
         return await handleUpdateArticle(event);
-      case 'DELETE /literacy-hub/delete-article/{id}':
+      case 'DELETE /literacy-hub/{id}':
         return await handleDeleteArticle(event);
-      case 'OPTIONS /literacy-hub/create-article':
-      case 'OPTIONS /literacy-hub/read-articles':
-      case 'OPTIONS /literacy-hub/read-article/{id}':
-      case 'OPTIONS /literacy-hub/update-article/{id}':
-      case 'OPTIONS /literacy-hub/delete-article/{id}':
+      case 'OPTIONS /literacy-hub':
+      case 'OPTIONS /literacy-hub/{id}':
         return {
           statusCode: 200,
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,PATCH,DELETE,OPTIONS',
+            'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
           },
           body: JSON.stringify({ message: 'CORS preflight' }),
         };

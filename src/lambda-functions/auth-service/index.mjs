@@ -4,8 +4,6 @@ import { SignJWT } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
-
 // Simple email validation (replacing Zod)
 function validateEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,6 +33,7 @@ async function handleLogin(event) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true',
         },
         body: JSON.stringify({ error: validationErrors.join(', ') }),
       };
@@ -60,6 +59,7 @@ async function handleLogin(event) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true',
         },
         body: JSON.stringify({ error: 'Invalid email or password.' }),
       };
@@ -85,7 +85,8 @@ async function handleLogin(event) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Set-Cookie': `token=${jwt}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict;`,
+        'Access-Control-Allow-Credentials': 'true',
+        'Set-Cookie': `token=${jwt}; HttpOnly; Path=/; Max-Age=604800; SameSite=None; Secure;`,
       },
       body: JSON.stringify({ user: { ...user, password: undefined } }),
     };
@@ -97,6 +98,7 @@ async function handleLogin(event) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ error: errorMessage }),
     };
@@ -110,7 +112,8 @@ async function handleLogout() {
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Set-Cookie': 'token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict;',
+      'Access-Control-Allow-Credentials': 'true',
+      'Set-Cookie': 'token=; HttpOnly; Path=/; Max-Age=0; SameSite=None; Secure;',
     },
     body: JSON.stringify({ success: true }),
   };
@@ -128,6 +131,7 @@ async function handleMe(event) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ error: 'Not authenticated' }),
     };
@@ -151,6 +155,7 @@ async function handleMe(event) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Credentials': 'true',
         },
         body: JSON.stringify({ error: 'User not found' }),
       };
@@ -163,6 +168,7 @@ async function handleMe(event) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ user: userWithoutPassword }),
     };
@@ -173,6 +179,7 @@ async function handleMe(event) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ error: 'Internal server error' }),
     };
@@ -186,6 +193,7 @@ export const handler = async (event) => {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Headers": "Content-Type,Authorization",
     "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,PATCH,OPTIONS",
   };
@@ -219,6 +227,7 @@ export const handler = async (event) => {
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
             "Access-Control-Allow-Headers": "Content-Type,Authorization",
             "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,PATCH,OPTIONS",
           },
@@ -232,6 +241,7 @@ export const handler = async (event) => {
           headers: {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
           },
           body: JSON.stringify({ error: `Unsupported route: ${event.routeKey}` }),
         };
@@ -243,6 +253,7 @@ export const handler = async (event) => {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({ error: "Internal server error" }),
     };

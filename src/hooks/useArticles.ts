@@ -6,7 +6,7 @@ export function useArticles() {
   const { data, isLoading, refetch, isError, error } = useQuery({
     queryKey: ["articles"],
     queryFn: async () => {
-      const res = await axios.get("/literacy-hub/read-articles");
+      const res = await axios.get("/literacy-hub");
       return res.data.articles;
     },
     staleTime: 5 * 60 * 1000,
@@ -29,7 +29,7 @@ export function useArticle(articleId?: string) {
     queryKey: ["article", articleId],
     queryFn: async () => {
       if (!articleId) throw new Error("No articleId provided");
-      const res = await axios.get(`/literacy-hub/read-article/${articleId}`);
+      const res = await axios.get(`/literacy-hub/${articleId}`);
       queryClient.invalidateQueries({ queryKey: ["articles"] });
       return res.data.article;
     },
@@ -49,10 +49,14 @@ export function useArticle(articleId?: string) {
 
 // Create an article
 export function useCreateArticle() {
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await axios.post("/literacy-hub/create-article", data);
+      const res = await axios.post("/literacy-hub", data);
       return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
     },
   });
 
@@ -76,14 +80,13 @@ export function useUpdateArticle() {
       articleId: string;
       data: any;
     }) => {
-      const res = await axios.patch(
-        `/literacy-hub/update-article/${articleId}`,
-        data
-      );
+      const res = await axios.put(`/literacy-hub/${articleId}`, data);
       return res.data.article;
     },
-    onSuccess: () => {
-      queryClient.refetchQueries({ queryKey: ["articles"] });
+    onSuccess: (data, variables) => {
+      // Invalidate both the articles list and the specific article
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
+      queryClient.invalidateQueries({ queryKey: ["article", variables.articleId] });
     },
   });
 
@@ -98,12 +101,14 @@ export function useUpdateArticle() {
 
 // Delete an article
 export function useDeleteArticle() {
+  const queryClient = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (articleId: string) => {
-      const res = await axios.delete(
-        `/literacy-hub/delete-article/${articleId}`
-      );
+      const res = await axios.delete(`/literacy-hub/${articleId}`);
       return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["articles"] });
     },
   });
 

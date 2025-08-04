@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import { Loader2, Trash2, Image as ImageIcon } from "lucide-react";
+import axios from "@/utils/axios";
 
 // Type for the uploaded file
 type UploadFile = {
@@ -44,23 +45,23 @@ export default function ReportsImageUploader({
   async function removeInitialFile() {
     if (!initialFileName) return;
     try {
-      const deleteFileResponse = await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      const deleteFileResponse = await axios.delete("/s3", {
+        data: {
           key: initialFileName,
           folderPath: folderPath,
-        }),
+        },
       });
-      if (!deleteFileResponse.ok) {
-        toast.error("Failed to delete file");
-        return;
+
+      if (deleteFileResponse.status !== 200) {
+        toast.error("Failed to remove image");
+        return false;
       }
-      toast.success("Image removed");
-      setShowInitial(false);
-      if (onUploadComplete) onUploadComplete("");
-    } catch (error) {
-      toast.error("Failed to delete file");
+
+      toast.success("Image removed successfully");
+      return true;
+    } catch (err) {
+      toast.error("Failed to remove image");
+      return false;
     }
   }
 
@@ -71,15 +72,13 @@ export default function ReportsImageUploader({
         URL.revokeObjectURL(file.objectUrl);
       }
       setFile((prev) => (prev ? { ...prev, isDeleting: true } : null));
-      const deleteFileResponse = await fetch("/api/s3", {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
+      const deleteFileResponse = await axios.delete("/s3", {
+        data: {
           key: file.fileName,
           folderPath: folderPath,
-        }),
+        },
       });
-      if (!deleteFileResponse.ok) {
+      if (deleteFileResponse.status !== 200) {
         toast.error("Failed to delete file");
         setFile((prev) =>
           prev ? { ...prev, isDeleting: false, error: true } : null
@@ -96,27 +95,20 @@ export default function ReportsImageUploader({
     }
   }
 
-  async function uploadFile(uploadFile: File) {
+  const uploadFile = async (uploadFile: File) => {
     setFile((prev) => (prev ? { ...prev, uploading: true } : null));
     try {
-      const presignedUrlResponse = await fetch("/api/s3", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          fileName: uploadFile.name,
-          contentType: uploadFile.type,
-          size: uploadFile.size,
-          folderPath: folderPath,
-        }),
+      const presignedUrlResponse = await axios.post("/s3", {
+        fileName: uploadFile.name,
+        contentType: uploadFile.type,
+        size: uploadFile.size,
+        folderPath: folderPath,
       });
-      if (!presignedUrlResponse.ok) {
+      if (presignedUrlResponse.status !== 200) {
         toast.error("Failed to get presigned URL");
-        setFile((prev) =>
-          prev ? { ...prev, uploading: false, progress: 0, error: true } : null
-        );
         return;
       }
-      const { presignedUrl, fileName } = await presignedUrlResponse.json();
+      const { presignedUrl, fileName } = presignedUrlResponse.data;
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (event) => {
@@ -167,7 +159,7 @@ export default function ReportsImageUploader({
         prev ? { ...prev, uploading: false, progress: 0, error: true } : null
       );
     }
-  }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
