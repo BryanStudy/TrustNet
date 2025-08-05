@@ -4,6 +4,9 @@ import React, { useState, useMemo } from "react";
 import DigitalThreatsModal from "@/components/digital-threats/digital-threats-create-modal";
 import { DigitalThreatsTable } from "@/components/digital-threats/digital-threats-table";
 import { DigitalThreatsSearchBar } from "@/components/digital-threats/digital-threats-search-bar";
+import NotificationSettingsModal from "@/components/digital-threats/notification-settings-modal";
+import { Button } from "@/components/ui/button";
+import { MdNotifications } from "react-icons/md";
 import { useMyDigitalThreats } from "@/hooks/useDigitalThreats";
 
 export default function MyThreatsPage() {
@@ -13,6 +16,8 @@ export default function MyThreatsPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
+  const [notificationSettingsOpen, setNotificationSettingsOpen] =
+    useState(false);
 
   // Filtering logic
   const filteredThreats = useMemo(() => {
@@ -55,7 +60,17 @@ export default function MyThreatsPage() {
           Result
           {filteredThreats.length !== 1 ? "s" : ""}
         </div>
-        <DigitalThreatsModal onRefetch={refetch} />
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setNotificationSettingsOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <MdNotifications className="h-4 w-4" />
+            Notification Settings
+          </Button>
+          <DigitalThreatsModal onRefetch={refetch} />
+        </div>
       </div>
       <div className="mt-6">
         <DigitalThreatsTable
@@ -65,6 +80,11 @@ export default function MyThreatsPage() {
           onRefetch={refetch}
         />
       </div>
+
+      <NotificationSettingsModal
+        open={notificationSettingsOpen}
+        onOpenChange={setNotificationSettingsOpen}
+      />
     </div>
   );
 }

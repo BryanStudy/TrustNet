@@ -20,3 +20,5 @@ const snsClientConfig: SNSClientConfig = {
 };
 
 const snsClient = new SNSClient(snsClientConfig);
+
+export default snsClient;

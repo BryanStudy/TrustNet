@@ -2,6 +2,7 @@ import { verifyAuth } from "@/utils/auth";
 import ddbDocClient from "@/utils/dynamodb";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { NextRequest, NextResponse } from "next/server";
+import { sendVerificationNotification } from "@/utils/threatNotifications";
 
 // Update threat status
 export async function PATCH(
@@ -65,9 +66,24 @@ export async function PATCH(
 
     const result = await ddbDocClient.send(updateCommand);
 
+    // Send notification if status is verified
+    if (status === "verified") {
+      try {
+        await sendVerificationNotification(threatId, createdAt);
+        console.log(`Verification notification sent for threat ${threatId}`);
+      } catch (notificationError) {
+        console.error(
+          `Failed to send notification for threat ${threatId}:`,
+          notificationError
+        );
+        // Don't fail the status update if notification fails
+      }
+    }
+
     return NextResponse.json({
       message: "Threat status updated successfully",
       threat: result.Attributes,
+      notificationSent: status === "verified",
     });
   } catch (error) {
     console.error("Error updating threat status:", error);
