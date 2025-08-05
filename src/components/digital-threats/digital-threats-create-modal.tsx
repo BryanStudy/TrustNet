@@ -69,11 +69,6 @@ export default function DigitalThreatsModal({
         setOpen(false);
         form.reset();
 
-        // Auto-subscribe user to notifications (don't await - don't block UI)
-        axios.post("/notifications/auto-subscribe").catch((error) => {
-          console.error("Auto-subscribe failed:", error);
-        });
-
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ["digital-threat"] });
         queryClient.invalidateQueries({ queryKey: ["digital-threats"] });

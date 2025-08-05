@@ -31,11 +31,7 @@ export async function autoSubscribeUser(email: string): Promise<void> {
     });
 
     const result = await snsClient.send(subscribeCommand);
-    console.log(
-      `Auto-subscribed ${email} to threat notifications. ARN: ${result.SubscriptionArn}`
-    );
   } catch (error) {
-    // Don't throw - threat creation should succeed even if subscription fails
     console.error("Error auto-subscribing user:", error);
   }
 }

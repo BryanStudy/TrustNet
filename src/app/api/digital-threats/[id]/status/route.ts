@@ -70,13 +70,11 @@ export async function PATCH(
     if (status === "verified") {
       try {
         await sendVerificationNotification(threatId, createdAt);
-        console.log(`Verification notification sent for threat ${threatId}`);
       } catch (notificationError) {
         console.error(
           `Failed to send notification for threat ${threatId}:`,
           notificationError
         );
-        // Don't fail the status update if notification fails
       }
     }
 
