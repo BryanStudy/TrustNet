@@ -33,7 +33,6 @@ import axios from "@/utils/axios";
 import { createDigitalThreatSchema } from "@/schema/digital-threats";
 import { AxiosError } from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import SubscriptionModal from "./subscription-modal";
 
 type DigitalThreatForm = z.infer<typeof createDigitalThreatSchema>;
 
@@ -46,8 +45,6 @@ export default function DigitalThreatsModal({
 }: DigitalThreatsModalProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [createdThreatArtifact, setCreatedThreatArtifact] = useState("");
   const queryClient = useQueryClient();
   const form = useForm<DigitalThreatForm>({
     resolver: zodResolver(createDigitalThreatSchema),
@@ -72,11 +69,10 @@ export default function DigitalThreatsModal({
         setOpen(false);
         form.reset();
 
-        // Store threat artifact for subscription modal
-        setCreatedThreatArtifact(data.artifact);
-
-        // Check subscription status and show modal if needed
-        checkAndShowSubscriptionModal();
+        // Auto-subscribe user to notifications (don't await - don't block UI)
+        axios.post("/notifications/auto-subscribe").catch((error) => {
+          console.error("Auto-subscribe failed:", error);
+        });
 
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ["digital-threat"] });
@@ -101,27 +97,6 @@ export default function DigitalThreatsModal({
         toast.error("An unexpected error occurred. Please try again.");
       }
     }
-  };
-
-  const checkAndShowSubscriptionModal = async () => {
-    try {
-      const response = await axios.get("/notifications/status");
-      const { subscribed } = response.data;
-
-      // Only show subscription modal if user is not already subscribed
-      if (!subscribed) {
-        setShowSubscriptionModal(true);
-      }
-    } catch (error) {
-      console.error("Error checking subscription status:", error);
-      // If error checking status, show modal anyway (better to ask than miss)
-      setShowSubscriptionModal(true);
-    }
-  };
-
-  const handleSubscriptionComplete = () => {
-    setShowSubscriptionModal(false);
-    // Navigation happens automatically since the threat creation was successful
   };
 
   return (
@@ -231,14 +206,6 @@ export default function DigitalThreatsModal({
           </Form>
         </DialogContent>
       </Dialog>
-
-      {/* Subscription Modal */}
-      <SubscriptionModal
-        open={showSubscriptionModal}
-        onOpenChange={setShowSubscriptionModal}
-        threatArtifact={createdThreatArtifact}
-        onComplete={handleSubscriptionComplete}
-      />
     </>
   );
 }
