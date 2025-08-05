@@ -8,7 +8,22 @@ import {
   TransactWriteCommand,
   BatchWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
+import {
+  SNSClient,
+  SubscribeCommand,
+  PublishCommand,
+} from "@aws-sdk/client-sns";
 import { v4 as uuidv4 } from "uuid";
+
+// AWS SNS Configuration
+const snsClient = new SNSClient({
+  region: process.env.AWS_REGION || "ap-southeast-1",
+});
+const TOPIC_ARN = process.env.AWS_SNS_TOPIC_ARN;
+
+if (!TOPIC_ARN) {
+  console.error("AWS_SNS_TOPIC_ARN environment variable is not set");
+}
 
 // Table names
 const DIGITAL_THREATS_TABLE = "digital-threats";
@@ -26,15 +41,137 @@ const validateCreateThreat = (data) => {
       typeof data[field] !== "string" ||
       data[field].trim() === ""
     ) {
+      console.error(`Validation error: ${field} is required`);
       throw new Error(`${field} is required`);
     }
   }
 
   if (!validTypes.includes(data.type)) {
+    console.error("Validation error: type must be url, email, or phone");
     throw new Error("Type must be url, email, or phone");
   }
 
   return true;
+};
+
+// SNS Utility Functions
+/**
+ * Auto-subscribe user to threat verification notifications
+ * Called on every threat creation - SNS handles duplicates gracefully
+ */
+const autoSubscribeUser = async (email) => {
+  if (!TOPIC_ARN) {
+    console.error("Cannot auto-subscribe: AWS_SNS_TOPIC_ARN not configured");
+    return;
+  }
+
+  try {
+    console.log(`🔃 Attempting to subscribe ${email} to topic: ${TOPIC_ARN}`);
+    const subscribeCommand = new SubscribeCommand({
+      TopicArn: TOPIC_ARN,
+      Protocol: "email",
+      Endpoint: email,
+    });
+
+    const result = await snsClient.send(subscribeCommand);
+    console.log(
+      `✅ Auto-subscribed ${email}. Response:`,
+      JSON.stringify(result, null, 2)
+    );
+  } catch (error) {
+    console.error("❌ Error auto-subscribing user:", error);
+  }
+};
+
+/**
+ * Send threat verification notification (always try to send)
+ * SNS will only deliver to confirmed subscribers
+ */
+const sendVerificationNotification = async (threatId, createdAt) => {
+  if (!TOPIC_ARN) {
+    console.error("Cannot send notification: AWS_SNS_TOPIC_ARN not configured");
+    return;
+  }
+
+  try {
+    // Get threat details
+    const threatCommand = new GetCommand({
+      TableName: DIGITAL_THREATS_TABLE,
+      Key: { threatId, createdAt },
+    });
+
+    const threatResult = await ddbDocClient.send(threatCommand);
+    if (!threatResult.Item) {
+      console.error(`Threat not found: ${threatId}`);
+      throw new Error(`Threat not found: ${threatId}`);
+    }
+
+    const threat = threatResult.Item;
+
+    // Get user details
+    const userCommand = new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId: threat.submittedBy },
+    });
+
+    const userResult = await ddbDocClient.send(userCommand);
+    if (!userResult.Item) {
+      console.error(`User not found: ${threat.submittedBy}`);
+      throw new Error(`User not found: ${threat.submittedBy}`);
+    }
+
+    const user = userResult.Item;
+
+    // Simplified email template (no custom unsubscribe)
+    const subject = "✅ Your TrustNet threat report has been verified";
+    const message = `Hi ${user.firstName},
+
+Great news! Your digital threat report has been verified by our admin team.
+
+Threat Details:
+📋 Artifact: ${threat.artifact}
+🔗 Type: ${threat.type.toUpperCase()}
+📝 Description: ${threat.description}
+✅ Status: Verified
+
+Your contribution helps keep our community safe from digital threats!
+
+Best regards,
+The TrustNet Team`;
+
+    console.log(`🔃 Attempting to publish to topic: ${TOPIC_ARN}`);
+    console.log(`Message subject: ${subject}`);
+
+    // Always try to send - SNS handles delivery to confirmed subscribers only
+    const publishCommand = new PublishCommand({
+      TopicArn: TOPIC_ARN,
+      Subject: subject,
+      Message: message,
+      MessageAttributes: {
+        threatId: {
+          DataType: "String",
+          StringValue: threatId,
+        },
+        userId: {
+          DataType: "String",
+          StringValue: threat.submittedBy,
+        },
+        email: {
+          DataType: "String",
+          StringValue: user.email,
+        },
+      },
+    });
+
+    const result = await snsClient.send(publishCommand);
+    console.log(
+      `✅ Notification sent. Response:`,
+      JSON.stringify(result, null, 2)
+    );
+  } catch (error) {
+    // Don't throw - verification should succeed even if notification fails
+    console.error("❌ Error sending verification notification:", error);
+  }
 };
 
 // Threat creation
@@ -56,6 +193,7 @@ const createThreat = async (event) => {
 
   const { Items } = await ddbDocClient.send(findArtifactCommand);
   if (Items && Items.length > 0) {
+    console.error("Artifact already exists:", body.artifact);
     throw new Error("Artifact already exists");
   }
 
@@ -83,6 +221,16 @@ const createThreat = async (event) => {
   });
 
   await ddbDocClient.send(putCommand);
+
+  // Auto-subscribe user to notifications (don't await - don't block response)
+  console.log(
+    `🔃 Attempting to auto-subscribe user ${userPayload.email} to topic: ${TOPIC_ARN}`
+  );
+  if (userPayload.email) {
+    autoSubscribeUser(userPayload.email).catch((error) => {
+      console.error("❌ Auto-subscribe failed:", error);
+    });
+  }
 
   return {
     message: "Digital threat created successfully",
@@ -121,6 +269,9 @@ const getThreatById = async (event) => {
   const { createdAt } = body;
 
   if (!createdAt || typeof createdAt !== "string") {
+    console.error(
+      "Validation error: createdAt is required and must be a string"
+    );
     throw new Error("createdAt is required and must be a string");
   }
 
@@ -133,6 +284,7 @@ const getThreatById = async (event) => {
   const { Item: threatItem } = await ddbDocClient.send(threatCommand);
 
   if (!threatItem) {
+    console.error("Threat not found:", threatId);
     throw new Error("Threat not found");
   }
 
@@ -167,6 +319,9 @@ const updateThreat = async (event) => {
   const { createdAt } = body;
 
   if (!createdAt || typeof createdAt !== "string") {
+    console.error(
+      "Validation error: createdAt is required and must be a string"
+    );
     throw new Error("createdAt is required and must be a string");
   }
 
@@ -178,6 +333,7 @@ const updateThreat = async (event) => {
 
   const { Item: existing } = await ddbDocClient.send(getCmd);
   if (!existing) {
+    console.error("Threat not found:", threatId);
     throw new Error("Threat not found");
   }
 
@@ -215,6 +371,9 @@ const deleteThreat = async (event) => {
   const { createdAt } = body;
 
   if (!createdAt || typeof createdAt !== "string") {
+    console.error(
+      "Validation error: createdAt is required and must be a string"
+    );
     throw new Error("createdAt is required and must be a string");
   }
 
@@ -226,6 +385,7 @@ const deleteThreat = async (event) => {
 
   const { Item } = await ddbDocClient.send(getCmd);
   if (!Item) {
+    console.error("Threat not found:", threatId);
     throw new Error("Threat not found");
   }
 
@@ -297,6 +457,9 @@ const likeThreat = async (event) => {
   const { createdAt } = body;
 
   if (!createdAt || typeof createdAt !== "string") {
+    console.error(
+      "Validation error: createdAt is required and must be a string"
+    );
     throw new Error("createdAt is required and must be a string");
   }
 
@@ -356,6 +519,9 @@ const unlikeThreat = async (event) => {
   const { createdAt } = body;
 
   if (!createdAt || typeof createdAt !== "string") {
+    console.error(
+      "Validation error: createdAt is required and must be a string"
+    );
     throw new Error("createdAt is required and must be a string");
   }
 
@@ -479,6 +645,7 @@ const getLikeStatus = async (event) => {
   const threatId = event.pathParameters.id;
 
   if (!threatId || typeof threatId !== "string") {
+    console.error("Validation error: threatId is required in the URL");
     throw new Error("threatId is required in the URL");
   }
 
@@ -498,6 +665,7 @@ const updateThreatStatus = async (event) => {
 
   // Only admins can update threat status
   if (userPayload.role !== "admin") {
+    console.error("Unauthorized access - Admin required");
     throw new Error("Forbidden - Admin access required");
   }
 
@@ -506,10 +674,14 @@ const updateThreatStatus = async (event) => {
   const { createdAt, status } = body;
 
   if (!createdAt || !status) {
+    console.error("Validation error: createdAt and status are required");
     throw new Error("createdAt and status are required");
   }
 
   if (!["verified", "unverified"].includes(status)) {
+    console.error(
+      "Validation error: status must be either 'verified' or 'unverified'"
+    );
     throw new Error("Status must be either 'verified' or 'unverified'");
   }
 
@@ -532,9 +704,20 @@ const updateThreatStatus = async (event) => {
 
   const result = await ddbDocClient.send(updateCommand);
 
+  // Send notification if status is verified
+  if (status === "verified") {
+    sendVerificationNotification(threatId, createdAt).catch((error) => {
+      console.error(
+        `Failed to send notification for threat ${threatId}:`,
+        error
+      );
+    });
+  }
+
   return {
     message: "Threat status updated successfully",
     threat: result.Attributes,
+    notificationSent: status === "verified",
   };
 };
 
@@ -618,6 +801,7 @@ export const handler = async (event) => {
         break;
 
       default:
+        console.error("Unsupported route:", event.routeKey);
         throw new Error(`Unsupported route: ${event.routeKey}`);
     }
   } catch (error) {

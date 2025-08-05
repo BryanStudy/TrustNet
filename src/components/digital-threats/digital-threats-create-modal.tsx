@@ -68,6 +68,8 @@ export default function DigitalThreatsModal({
         setLoading(false);
         setOpen(false);
         form.reset();
+
+        // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ["digital-threat"] });
         queryClient.invalidateQueries({ queryKey: ["digital-threats"] });
         queryClient.invalidateQueries({ queryKey: ["my-digital-threats"] });

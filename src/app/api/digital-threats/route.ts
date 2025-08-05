@@ -5,6 +5,7 @@ import ddbDocClient from "@/utils/dynamodb";
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
+import { autoSubscribeUser } from "@/utils/threatNotifications";
 
 // Get all threats
 export async function GET(req: NextRequest) {
@@ -106,6 +107,11 @@ export async function POST(req: NextRequest) {
       Item: newThreat,
     });
     await ddbDocClient.send(putDigitalThreatCommand);
+
+    // Auto-subscribe user to notifications (don't await - don't block response)
+    autoSubscribeUser(userPayload.email as string).catch((error) => {
+      console.error("Auto-subscribe failed:", error);
+    });
 
     return NextResponse.json(
       { message: "Digital threat created successfully" },
