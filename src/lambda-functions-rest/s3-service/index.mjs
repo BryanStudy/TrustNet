@@ -6,6 +6,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
 
@@ -16,6 +17,7 @@ function getCorsOrigin(event) {
 
 // S3 client setup
 const s3Client = new S3Client({});
+const tracedS3Client = AWSXRay.captureAWSv3Client(s3Client);
 
 // S3 helper functions
 function getBucketName() {
@@ -108,7 +110,7 @@ async function createUploadUrl(request) {
     ContentLength: size,
   });
 
-  const presignedUrl = await getSignedUrl(s3Client, command, {
+  const presignedUrl = await getSignedUrl(tracedS3Client, command, {
     expiresIn: 300, // 5 minutes
   });
 
@@ -133,7 +135,7 @@ async function listFiles(folderPath) {
     MaxKeys: 1000,
   });
 
-  const response = await s3Client.send(command);
+  const response = await tracedS3Client.send(command);
 
   if (!response.Contents) {
     return { files: [] };
@@ -183,7 +185,7 @@ async function deleteFile(fileNameOrKey, folderPath) {
     Key: key,
   });
 
-  await s3Client.send(command);
+  await tracedS3Client.send(command);
 }
 
 // Create presigned URL (POST /s3)

@@ -1,7 +1,11 @@
 import { verifyAuth, ddbDocClient } from "/opt/nodejs/index.js";
 import { ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
+
+// Initialize X-Ray tracing for DynamoDB
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
 
 function getCorsOrigin(event) {
   const origin = event.headers?.origin || event.headers?.Origin;
@@ -34,7 +38,7 @@ async function handleDashboard(event) {
       likesResult,
     ] = await Promise.all([
       // Users data - only need for count and registration dates
-      ddbDocClient.send(
+      tracedDdbDocClient.send(
         new ScanCommand({
           TableName: "users",
           ProjectionExpression: "userId, createdAt",
@@ -42,7 +46,7 @@ async function handleDashboard(event) {
       ),
 
       // Scam reports data - only need for count
-      ddbDocClient.send(
+      tracedDdbDocClient.send(
         new ScanCommand({
           TableName: "scam-reports",
           ProjectionExpression: "reportId",
@@ -50,7 +54,7 @@ async function handleDashboard(event) {
       ),
 
       // Digital threats data - need for count and status distribution
-      ddbDocClient.send(
+      tracedDdbDocClient.send(
         new ScanCommand({
           TableName: "digital-threats",
           ProjectionExpression: "threatId, #s",
@@ -61,7 +65,7 @@ async function handleDashboard(event) {
       ),
 
       // Articles data - only need for count
-      ddbDocClient.send(
+      tracedDdbDocClient.send(
         new ScanCommand({
           TableName: "articles",
           ProjectionExpression: "articleId",
@@ -69,7 +73,7 @@ async function handleDashboard(event) {
       ),
 
       // Threat likes data - only need for count
-      ddbDocClient.send(
+      tracedDdbDocClient.send(
         new ScanCommand({
           TableName: "threat-likes",
           ProjectionExpression: "userId",

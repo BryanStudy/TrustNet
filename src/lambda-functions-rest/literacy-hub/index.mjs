@@ -7,8 +7,12 @@ import {
   DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
+
+// X-Ray SDK initialization
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
 
 function getCorsOrigin(event) {
   const origin = event.headers?.origin || event.headers?.Origin;
@@ -131,7 +135,7 @@ async function handleCreateArticle(event) {
       ExpressionAttributeValues: { ":title": body.title },
       Limit: 1,
     });
-    const { Items } = await ddbDocClient.send(queryCommand);
+    const { Items } = await tracedDdbDocClient.send(queryCommand);
     if (Items && Items.length > 0) {
       return {
         statusCode: 403,
@@ -166,7 +170,7 @@ async function handleCreateArticle(event) {
       TableName: "articles",
       Item: newArticle,
     });
-    await ddbDocClient.send(putArticleCommand);
+    await tracedDdbDocClient.send(putArticleCommand);
 
     return {
       statusCode: 200,
@@ -201,7 +205,7 @@ async function handleReadArticles(event) {
       ExpressionAttributeValues: { ":viewable": "ARTICLES" },
       ScanIndexForward: false, // newest first
     });
-    const { Items } = await ddbDocClient.send(command);
+    const { Items } = await tracedDdbDocClient.send(command);
     const articles = Items || [];
 
     // Fetch user info for each article
@@ -214,7 +218,7 @@ async function handleReadArticles(event) {
             TableName: "users",
             Key: { userId: article.userId },
           });
-          const { Item: userItem } = await ddbDocClient.send(userCommand);
+          const { Item: userItem } = await tracedDdbDocClient.send(userCommand);
           if (userItem && userItem.firstName && userItem.lastName) {
             authorName = `${userItem.firstName} ${userItem.lastName}`;
             authorPicture = userItem.picture || null;
@@ -276,7 +280,7 @@ async function handleReadArticle(event) {
       Key: { articleId },
     });
 
-    const { Item: article } = await ddbDocClient.send(articleCommand);
+    const { Item: article } = await tracedDdbDocClient.send(articleCommand);
 
     if (!article) {
       return {
@@ -303,7 +307,7 @@ async function handleReadArticle(event) {
       ReturnValues: "ALL_NEW",
     });
 
-    const { Attributes: updatedArticle } = await ddbDocClient.send(
+    const { Attributes: updatedArticle } = await tracedDdbDocClient.send(
       updateCommand
     );
 
@@ -328,7 +332,7 @@ async function handleReadArticle(event) {
         Key: { userId: updatedArticle.userId },
       });
 
-      const { Item: userItem } = await ddbDocClient.send(userCommand);
+      const { Item: userItem } = await tracedDdbDocClient.send(userCommand);
 
       if (userItem?.firstName && userItem?.lastName) {
         authorName = `${userItem.firstName} ${userItem.lastName}`;
@@ -400,7 +404,7 @@ async function handleUpdateArticle(event) {
       TableName: "articles",
       Key: { articleId },
     });
-    const { Item: existingArticle } = await ddbDocClient.send(getCommand);
+    const { Item: existingArticle } = await tracedDdbDocClient.send(getCommand);
     if (!existingArticle) {
       return {
         statusCode: 404,
@@ -459,7 +463,7 @@ async function handleUpdateArticle(event) {
       ReturnValues: "ALL_NEW",
     });
 
-    const { Attributes: updated } = await ddbDocClient.send(command);
+    const { Attributes: updated } = await tracedDdbDocClient.send(command);
     if (!updated) {
       return {
         statusCode: 404,
@@ -480,7 +484,7 @@ async function handleUpdateArticle(event) {
         TableName: "users",
         Key: { userId: updated.userId },
       });
-      const { Item: userItem } = await ddbDocClient.send(userCommand);
+      const { Item: userItem } = await tracedDdbDocClient.send(userCommand);
       if (userItem && userItem.firstName && userItem.lastName) {
         authorName = `${userItem.firstName} ${userItem.lastName}`;
         authorPicture = userItem.picture || null;
@@ -532,7 +536,7 @@ async function handleDeleteArticle(event) {
       TableName: "articles",
       Key: { articleId },
     });
-    await ddbDocClient.send(command);
+    await tracedDdbDocClient.send(command);
 
     return {
       statusCode: 200,
