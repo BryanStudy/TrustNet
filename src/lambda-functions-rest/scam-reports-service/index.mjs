@@ -14,6 +14,7 @@ import {
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
 
@@ -28,6 +29,10 @@ const USERS_TABLE = "users";
 
 // S3 client setup
 const s3Client = new S3Client({});
+
+// X-Ray tracing
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
+const tracedS3Client = AWSXRay.captureAWSv3Client(s3Client);
 
 // S3 helper functions
 function getBucketName() {
@@ -56,7 +61,7 @@ async function deleteFile(fileNameOrKey, folderPath) {
     Key: key,
   });
 
-  await s3Client.send(command);
+  await tracedS3Client.send(command);
 }
 
 // Schema validation
@@ -170,7 +175,7 @@ const createScamReport = async (event) => {
     Item: newReport,
   });
 
-  await ddbDocClient.send(putCommand);
+  await tracedDdbDocClient.send(putCommand);
 
   return {
     message: "Scam report created successfully",
@@ -203,7 +208,7 @@ const getAllScamReports = async (event) => {
     ...(lastEvaluatedKey ? { ExclusiveStartKey: lastEvaluatedKey } : {}),
   });
 
-  const { Items } = await ddbDocClient.send(queryCommand);
+  const { Items } = await tracedDdbDocClient.send(queryCommand);
   let reports = Items || [];
   let nextEvaluatedKey = null;
 
@@ -232,7 +237,7 @@ const getAllScamReports = async (event) => {
         },
       },
     });
-    const batchResult = await ddbDocClient.send(batchGetCommand);
+    const batchResult = await tracedDdbDocClient.send(batchGetCommand);
     const users = batchResult.Responses?.[USERS_TABLE] || [];
     userMap = Object.fromEntries(users.map((u) => [u.userId, u]));
   }
@@ -279,7 +284,7 @@ const getScamReportById = async (event) => {
     },
   });
 
-  const { Item } = await ddbDocClient.send(reportCommand);
+  const { Item } = await tracedDdbDocClient.send(reportCommand);
 
   if (!Item) {
     throw new Error("Report not found");
@@ -316,7 +321,7 @@ const getScamReportByIdWithUserDetail = async (event) => {
     },
   });
 
-  const { Item } = await ddbDocClient.send(reportCommand);
+  const { Item } = await tracedDdbDocClient.send(reportCommand);
 
   if (!Item) {
     throw new Error("Report not found");
@@ -333,7 +338,7 @@ const getScamReportByIdWithUserDetail = async (event) => {
       TableName: USERS_TABLE,
       Key: { userId: report.userId },
     });
-    const { Item: userItem } = await ddbDocClient.send(userCommand);
+    const { Item: userItem } = await tracedDdbDocClient.send(userCommand);
 
     if (userItem && userItem.firstName && userItem.lastName) {
       reporterName = `${userItem.firstName} ${userItem.lastName}`;
@@ -388,7 +393,7 @@ const updateScamReport = async (event) => {
     },
   });
 
-  await ddbDocClient.send(command);
+  await tracedDdbDocClient.send(command);
 
   return { message: "Scam report updated successfully" };
 };
@@ -415,7 +420,7 @@ const deleteScamReport = async (event) => {
     Key: { reportId, createdAt },
   });
 
-  await ddbDocClient.send(deleteCommand);
+  await tracedDdbDocClient.send(deleteCommand);
 
   // Delete the image from S3
   try {
@@ -443,7 +448,7 @@ const getMyScamReports = async (event) => {
     Limit: 25,
   });
 
-  const { Items } = await ddbDocClient.send(command);
+  const { Items } = await tracedDdbDocClient.send(command);
 
   return {
     reports: Items || [],
@@ -485,7 +490,9 @@ const searchScamReports = async (event) => {
     ...(lastEvaluatedKey ? { ExclusiveStartKey: lastEvaluatedKey } : {}),
   });
 
-  const { Items, LastEvaluatedKey } = await ddbDocClient.send(queryCommand);
+  const { Items, LastEvaluatedKey } = await tracedDdbDocClient.send(
+    queryCommand
+  );
   const reports = Items || [];
 
   // Collect unique userIds
@@ -501,7 +508,7 @@ const searchScamReports = async (event) => {
         },
       },
     });
-    const batchResult = await ddbDocClient.send(batchGetCommand);
+    const batchResult = await tracedDdbDocClient.send(batchGetCommand);
     const users = batchResult.Responses?.[USERS_TABLE] || [];
     userMap = Object.fromEntries(users.map((u) => [u.userId, u]));
   }

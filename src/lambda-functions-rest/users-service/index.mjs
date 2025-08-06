@@ -12,6 +12,7 @@ import { SignJWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { S3Client } from "@aws-sdk/client-s3";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
 
@@ -23,7 +24,10 @@ function getCorsOrigin(event) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 // S3 client setup
-const s3Client = new S3Client({});
+const s3Client = AWSXRay.captureAWSv3Client(new S3Client({}));
+
+// DynamoDB Setup
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
 
 // S3 helper functions
 function getBucketName() {
@@ -172,7 +176,7 @@ async function handleCreateUser(event) {
       ExpressionAttributeValues: { ":email": email },
       Limit: 1,
     });
-    const { Items } = await ddbDocClient.send(query);
+    const { Items } = await tracedDdbDocClient.send(query);
 
     if (Items && Items.length > 0) {
       return {
@@ -198,7 +202,7 @@ async function handleCreateUser(event) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await ddbDocClient.send(
+    await tracedDdbDocClient.send(
       new PutCommand({
         TableName: "users",
         Item: user,
@@ -285,7 +289,7 @@ async function handleGetUsers(event) {
       },
     });
 
-    const { Items: users = [] } = await ddbDocClient.send(command);
+    const { Items: users = [] } = await tracedDdbDocClient.send(command);
 
     return {
       statusCode: 200,
@@ -352,7 +356,7 @@ async function handleAdminCreateUser(event) {
       ExpressionAttributeValues: { ":email": email },
       Limit: 1,
     });
-    const { Items } = await ddbDocClient.send(query);
+    const { Items } = await tracedDdbDocClient.send(query);
     if (Items && Items.length > 0) {
       return {
         statusCode: 409,
@@ -377,7 +381,7 @@ async function handleAdminCreateUser(event) {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    await ddbDocClient.send(
+    await tracedDdbDocClient.send(
       new PutCommand({
         TableName: "users",
         Item: user,
@@ -459,7 +463,7 @@ async function handleGetUser(event) {
       Key: { userId },
     });
 
-    const { Item: user } = await ddbDocClient.send(command);
+    const { Item: user } = await tracedDdbDocClient.send(command);
 
     if (!user) {
       return {
@@ -617,7 +621,7 @@ async function handleUpdateUser(event) {
       ReturnValues: "ALL_NEW",
     });
 
-    const { Attributes } = await ddbDocClient.send(command);
+    const { Attributes } = await tracedDdbDocClient.send(command);
 
     if (!Attributes) {
       return {
@@ -708,7 +712,7 @@ async function handleDeleteUser(event) {
       TableName: "users",
       Key: { userId },
     });
-    const { Item: user } = await ddbDocClient.send(getUserCommand);
+    const { Item: user } = await tracedDdbDocClient.send(getUserCommand);
 
     if (!user) {
       return {
@@ -737,7 +741,9 @@ async function handleDeleteUser(event) {
       FilterExpression: "submittedBy = :userId",
       ExpressionAttributeValues: { ":userId": userId },
     });
-    const { Items: threats = [] } = await ddbDocClient.send(threatsCommand);
+    const { Items: threats = [] } = await tracedDdbDocClient.send(
+      threatsCommand
+    );
 
     // Collect likes for each threatId (orphan likes)
     let orphanThreatLikes = [];
@@ -750,7 +756,7 @@ async function handleDeleteUser(event) {
         KeyConditionExpression: "threatId = :threatId",
         ExpressionAttributeValues: { ":threatId": threat.threatId },
       });
-      const { Items: threatLikes = [] } = await ddbDocClient.send(
+      const { Items: threatLikes = [] } = await tracedDdbDocClient.send(
         threatLikesQuery
       );
       orphanThreatLikes.push(...threatLikes);
@@ -762,7 +768,7 @@ async function handleDeleteUser(event) {
       KeyConditionExpression: "userId = :userId",
       ExpressionAttributeValues: { ":userId": userId },
     });
-    const { Items: likes = [] } = await ddbDocClient.send(likesCommand);
+    const { Items: likes = [] } = await tracedDdbDocClient.send(likesCommand);
 
     // 3. Delete from articles table (where userId = userId)
     const articlesCommand = new ScanCommand({
@@ -770,7 +776,9 @@ async function handleDeleteUser(event) {
       FilterExpression: "userId = :userId",
       ExpressionAttributeValues: { ":userId": userId },
     });
-    const { Items: articles = [] } = await ddbDocClient.send(articlesCommand);
+    const { Items: articles = [] } = await tracedDdbDocClient.send(
+      articlesCommand
+    );
 
     // 4. Delete from scam-reports table (where userId = userId)
     const reportsCommand = new ScanCommand({
@@ -778,7 +786,9 @@ async function handleDeleteUser(event) {
       FilterExpression: "userId = :userId",
       ExpressionAttributeValues: { ":userId": userId },
     });
-    const { Items: reports = [] } = await ddbDocClient.send(reportsCommand);
+    const { Items: reports = [] } = await tracedDdbDocClient.send(
+      reportsCommand
+    );
 
     // Prepare batch delete operations
     const deleteRequests = [];
@@ -892,7 +902,7 @@ async function handleDeleteUser(event) {
         const batchCommand = new BatchWriteCommand({
           RequestItems: requestItems,
         });
-        await ddbDocClient.send(batchCommand);
+        await tracedDdbDocClient.send(batchCommand);
       }
     }
 
@@ -901,7 +911,7 @@ async function handleDeleteUser(event) {
       TableName: "users",
       Key: { userId },
     });
-    await ddbDocClient.send(deleteUserCommand);
+    await tracedDdbDocClient.send(deleteUserCommand);
 
     return {
       statusCode: 200,

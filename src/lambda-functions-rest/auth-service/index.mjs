@@ -1,10 +1,14 @@
 import { verifyAuth, ddbDocClient } from "/opt/nodejs/index.js";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { SignJWT } from "jose";
+import AWSXRay from "aws-xray-sdk-core";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
+
+// Initialize X-Ray tracing for DynamoDB
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
 
 function getCorsOrigin(event) {
   const origin = event.headers?.origin || event.headers?.Origin;
@@ -57,7 +61,7 @@ async function handleLogin(event) {
       Limit: 1,
     });
 
-    const { Items } = await ddbDocClient.send(command);
+    const { Items } = await tracedDdbDocClient.send(command);
     const user = Items && Items[0];
 
     if (!user || user.password !== password) {
@@ -156,7 +160,7 @@ async function handleMe(event) {
       Limit: 1,
     });
 
-    const { Items } = await ddbDocClient.send(command);
+    const { Items } = await tracedDdbDocClient.send(command);
     const user = Items && Items[0];
 
     if (!user) {

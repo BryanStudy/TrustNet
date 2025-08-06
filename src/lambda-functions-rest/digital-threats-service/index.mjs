@@ -14,6 +14,7 @@ import {
   PublishCommand,
 } from "@aws-sdk/client-sns";
 import { v4 as uuidv4 } from "uuid";
+import AWSXRay from "aws-xray-sdk-core";
 
 const allowedOrigins = ["http://localhost:3000", "http://localhost:8080"];
 
@@ -27,6 +28,10 @@ const snsClient = new SNSClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
 });
 const TOPIC_ARN = process.env.AWS_SNS_TOPIC_ARN;
+
+// AWS XRAY Configuration
+const tracedDdbDocClient = AWSXRay.captureAWSv3Client(ddbDocClient);
+const tracedSnsClient = AWSXRay.captureAWSv3Client(snsClient);
 
 if (!TOPIC_ARN) {
   console.error("AWS_SNS_TOPIC_ARN environment variable is not set");
@@ -80,7 +85,7 @@ const autoSubscribeUser = async (email) => {
       Endpoint: email,
     });
 
-    const result = await snsClient.send(subscribeCommand);
+    const result = await tracedSnsClient.send(subscribeCommand);
     console.log(
       `✅ Auto-subscribed ${email}. Response:`,
       JSON.stringify(result, null, 2)
@@ -107,7 +112,7 @@ const sendVerificationNotification = async (threatId, createdAt) => {
       Key: { threatId, createdAt },
     });
 
-    const threatResult = await ddbDocClient.send(threatCommand);
+    const threatResult = await tracedDdbDocClient.send(threatCommand);
     if (!threatResult.Item) {
       console.error(`Threat not found: ${threatId}`);
       throw new Error(`Threat not found: ${threatId}`);
@@ -121,7 +126,7 @@ const sendVerificationNotification = async (threatId, createdAt) => {
       Key: { userId: threat.submittedBy },
     });
 
-    const userResult = await ddbDocClient.send(userCommand);
+    const userResult = await tracedDdbDocClient.send(userCommand);
     if (!userResult.Item) {
       console.error(`User not found: ${threat.submittedBy}`);
       throw new Error(`User not found: ${threat.submittedBy}`);
@@ -170,7 +175,7 @@ The TrustNet Team`;
       },
     });
 
-    const result = await snsClient.send(publishCommand);
+    const result = await tracedSnsClient.send(publishCommand);
     console.log(
       `✅ Notification sent. Response:`,
       JSON.stringify(result, null, 2)
@@ -198,7 +203,7 @@ const createThreat = async (event) => {
     Limit: 1,
   });
 
-  const { Items } = await ddbDocClient.send(findArtifactCommand);
+  const { Items } = await tracedDdbDocClient.send(findArtifactCommand);
   if (Items && Items.length > 0) {
     console.error("Artifact already exists:", body.artifact);
     throw new Error("Artifact already exists");
@@ -227,7 +232,7 @@ const createThreat = async (event) => {
     Item: newThreat,
   });
 
-  await ddbDocClient.send(putCommand);
+  await tracedDdbDocClient.send(putCommand);
 
   // Auto-subscribe user to notifications (don't await - don't block response)
   console.log(
@@ -260,7 +265,7 @@ const getAllThreats = async (event) => {
     Limit: 50,
   });
 
-  const { Items } = await ddbDocClient.send(command);
+  const { Items } = await tracedDdbDocClient.send(command);
 
   return {
     threats: Items || [],
@@ -288,7 +293,7 @@ const getThreatById = async (event) => {
     Key: { threatId, createdAt },
   });
 
-  const { Item: threatItem } = await ddbDocClient.send(threatCommand);
+  const { Item: threatItem } = await tracedDdbDocClient.send(threatCommand);
 
   if (!threatItem) {
     console.error("Threat not found:", threatId);
@@ -302,7 +307,7 @@ const getThreatById = async (event) => {
       TableName: USERS_TABLE,
       Key: { userId: threatItem.submittedBy },
     });
-    const { Item: userItem } = await ddbDocClient.send(userCommand);
+    const { Item: userItem } = await tracedDdbDocClient.send(userCommand);
 
     if (userItem && userItem.firstName && userItem.lastName) {
       reporterName = `${userItem.firstName} ${userItem.lastName}`;
@@ -338,7 +343,7 @@ const updateThreat = async (event) => {
     Key: { threatId, createdAt },
   });
 
-  const { Item: existing } = await ddbDocClient.send(getCmd);
+  const { Item: existing } = await tracedDdbDocClient.send(getCmd);
   if (!existing) {
     console.error("Threat not found:", threatId);
     throw new Error("Threat not found");
@@ -364,7 +369,7 @@ const updateThreat = async (event) => {
     },
   });
 
-  await ddbDocClient.send(updateCmd);
+  await tracedDdbDocClient.send(updateCmd);
 
   return { message: "Threat updated successfully" };
 };
@@ -390,7 +395,7 @@ const deleteThreat = async (event) => {
     Key: { threatId, createdAt },
   });
 
-  const { Item } = await ddbDocClient.send(getCmd);
+  const { Item } = await tracedDdbDocClient.send(getCmd);
   if (!Item) {
     console.error("Threat not found:", threatId);
     throw new Error("Threat not found");
@@ -407,7 +412,7 @@ const deleteThreat = async (event) => {
       ProjectionExpression: "userId, threatId",
     });
 
-    const { Items: likeItems } = await ddbDocClient.send(queryCmd);
+    const { Items: likeItems } = await tracedDdbDocClient.send(queryCmd);
     if (likeItems && likeItems.length > 0) {
       // Batch delete in chunks of 25
       for (let i = 0; i < likeItems.length; i += 25) {
@@ -424,7 +429,7 @@ const deleteThreat = async (event) => {
           },
         });
 
-        const batchRes = await ddbDocClient.send(batchCmd);
+        const batchRes = await tracedDdbDocClient.send(batchCmd);
         if (
           batchRes.UnprocessedItems &&
           Object.keys(batchRes.UnprocessedItems).length > 0
@@ -443,7 +448,7 @@ const deleteThreat = async (event) => {
     Key: { threatId, createdAt },
   });
 
-  await ddbDocClient.send(deleteCmd);
+  await tracedDdbDocClient.send(deleteCmd);
 
   if (likeDeleteWarning) {
     return {
@@ -477,7 +482,7 @@ const likeThreat = async (event) => {
     Key: likeKey,
   });
 
-  const { Item: likeItem } = await ddbDocClient.send(getLike);
+  const { Item: likeItem } = await tracedDdbDocClient.send(getLike);
   if (likeItem) {
     return { message: "Already liked" };
   }
@@ -507,7 +512,7 @@ const likeThreat = async (event) => {
   });
 
   try {
-    await ddbDocClient.send(transactCmd);
+    await tracedDdbDocClient.send(transactCmd);
     return { message: "Liked successfully" };
   } catch (error) {
     if (error.name === "TransactionCanceledException") {
@@ -539,7 +544,7 @@ const unlikeThreat = async (event) => {
     Key: likeKey,
   });
 
-  const { Item: likeItem } = await ddbDocClient.send(getLike);
+  const { Item: likeItem } = await tracedDdbDocClient.send(getLike);
   if (!likeItem) {
     return { message: "Already unliked" };
   }
@@ -569,7 +574,7 @@ const unlikeThreat = async (event) => {
   });
 
   try {
-    await ddbDocClient.send(transactCmd);
+    await tracedDdbDocClient.send(transactCmd);
     return { message: "Unliked successfully" };
   } catch (error) {
     if (error.name === "TransactionCanceledException") {
@@ -595,7 +600,7 @@ const getMyThreats = async (event) => {
     Limit: 50,
   });
 
-  const { Items } = await ddbDocClient.send(command);
+  const { Items } = await tracedDdbDocClient.send(command);
 
   return {
     threats: Items || [],
@@ -608,7 +613,7 @@ const getLikedThreats = async (event) => {
   const userId = userPayload.userId;
 
   // Query threat-likes table for this user's likes
-  const likesResult = await ddbDocClient.send(
+  const likesResult = await tracedDdbDocClient.send(
     new QueryCommand({
       TableName: THREAT_LIKES_TABLE,
       IndexName: "userId-index",
@@ -629,7 +634,7 @@ const getLikedThreats = async (event) => {
   // Query digital-threats table for all threatIds
   const digitalThreats = [];
   for (const threatId of uniqueThreatIds) {
-    const threatResult = await ddbDocClient.send(
+    const threatResult = await tracedDdbDocClient.send(
       new QueryCommand({
         TableName: DIGITAL_THREATS_TABLE,
         IndexName: "threatId-index",
@@ -661,7 +666,7 @@ const getLikeStatus = async (event) => {
     Key: { userId, threatId },
   });
 
-  const { Item } = await ddbDocClient.send(getLike);
+  const { Item } = await tracedDdbDocClient.send(getLike);
 
   return { liked: !!Item };
 };
@@ -709,7 +714,7 @@ const updateThreatStatus = async (event) => {
     ReturnValues: "ALL_NEW",
   });
 
-  const result = await ddbDocClient.send(updateCommand);
+  const result = await tracedDdbDocClient.send(updateCommand);
 
   // Send notification if status is verified
   if (status === "verified") {
